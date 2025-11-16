@@ -3,8 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any
 
 import numpy as np
 
@@ -15,25 +14,7 @@ except Exception:  # pragma: no cover
     torch = None
     Tensor = Any
 
-TaskType = Literal["mlm", "causal"]
-Pooling = Literal["mean", "last_nonpad"]
-
-
-@dataclass
-class BackendConfig:
-    """
-    Framework-agnostic configuration for sequence models.
-    """
-    task_type: TaskType                  # "mlm" or "causal"
-    device: str = "cpu"
-    dtype: Any | None = None             # e.g., torch.float16
-    default_pooling: Pooling | None = None  # if None -> inferred from task_type
-
-
-    def resolved_pooling(self) -> Pooling:
-        if self.default_pooling is not None:
-            return self.default_pooling
-        return "mean" if self.task_type == "mlm" else "last_nonpad"
+from ..config import BackendConfig, Pooling
 
 
 class ModelBackend(ABC):
@@ -54,8 +35,13 @@ class ModelBackend(ABC):
         - generate_uncond() / generate_with_prefix(): implement your own decoding
     """
 
-    def __init__(self, **cfg: Any):
-        self.cfg = BackendConfig(**cfg)
+    def __init__(self, backend_cfg: BackendConfig | None = None, **cfg: Any):
+        if backend_cfg is not None and cfg:
+            raise ValueError("Pass either backend_cfg or keyword overrides, not both.")
+        if backend_cfg is None:
+            self.cfg = BackendConfig(**cfg)
+        else:
+            self.cfg = backend_cfg
         self.model: Any = None
         self.tokenizer: Any = None
 

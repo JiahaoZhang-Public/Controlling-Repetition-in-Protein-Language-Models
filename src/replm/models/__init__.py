@@ -1,8 +1,8 @@
 # src/replm/models/__init__.py
 from __future__ import annotations
 
-from collections.abc import Callable
 import importlib
+from collections.abc import Callable
 from typing import Any, TypeVar
 
 from .base import ModelBackend

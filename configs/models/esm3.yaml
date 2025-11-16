@@ -1,0 +1,10 @@
+defaults:
+  - init: esm3_open
+  - generation: esm3_default
+
+name: esm3
+backend:
+  task_type: mlm
+  device: cpu
+  dtype: null
+  default_pooling: null

@@ -19,6 +19,8 @@ from typing import Any, TypeVar
 
 import torch
 
+from replm.utils.constants import normalize_sequence
+
 logger = logging.getLogger(__name__)
 
 TProxy = TypeVar("TProxy", bound="StructureProxyModel")
@@ -73,7 +75,7 @@ class StructureProxyModel(ABC):
 
     def evaluate(self, sequence: str, **overrides: Any) -> StructureConfidenceResult:
         """Run the proxy model on ``sequence`` and return structured outputs."""
-        normalized = self._normalize_sequence(sequence)
+        normalized = normalize_sequence(sequence)
         params = {**self.get_default_params(), **self._config, **overrides}
         metrics, extras = self._predict(normalized, **params)
         return StructureConfidenceResult(
@@ -87,13 +89,6 @@ class StructureProxyModel(ABC):
     @abstractmethod
     def _predict(self, sequence: str, **params: Any) -> tuple[Mapping[str, float], dict[str, Any]]:
         """Subclass hook that returns ``(metrics, extras)``."""
-
-    @staticmethod
-    def _normalize_sequence(sequence: str) -> str:
-        if not isinstance(sequence, str) or not sequence.strip():
-            raise ValueError("`sequence` must be a non-empty string.")
-        return sequence.replace(" ", "").replace("\n", "").upper()
-
 
 # --------------------------------------------------------------------------- #
 #                                Registry                                     #

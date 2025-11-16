@@ -2,14 +2,16 @@
 """ESM3 backend wired into the new ModelBackend abstraction."""
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from dataclasses import asdict
 from typing import Any
 
 import torch
 from torch import nn
 
+from ...config import BackendConfig, ESM3GenerationConfig, ESM3InitConfig, coerce_config
 from .. import register_model
-from ..base import ModelBackend, Pooling, TaskType
+from ..base import ModelBackend
 from ..utils import (
     HookManager,
     batch_tokenize,
@@ -25,26 +27,22 @@ class ESM3Backend(ModelBackend):
     def __init__(
         self,
         *,
-        task_type: TaskType,
-        device: str = "cpu",
-        dtype: Any | None = None,
-        default_pooling: Pooling | None = None,
-        model_name: str = "esm3-open",
-        torch_autocast: bool = True,
-        include_final_norm: bool = False,
-        exclude_special_tokens: bool | None = None,
+        backend_cfg: BackendConfig,
+        init_cfg: ESM3InitConfig | Mapping[str, Any] | None = None,
+        gen_cfg: ESM3GenerationConfig | Mapping[str, Any] | None = None,
     ) -> None:
-        super().__init__(
-            task_type=task_type,
-            device=device,
-            dtype=dtype,
-            default_pooling=default_pooling,
-        )
-        self.model_name = model_name
-        self.torch_autocast = torch_autocast
-        self.include_final_norm = include_final_norm
+        super().__init__(backend_cfg=backend_cfg)
+        self.init_cfg = coerce_config(init_cfg, ESM3InitConfig)
+        self.gen_params = coerce_config(gen_cfg, ESM3GenerationConfig)
+
+        self.model_name = self.init_cfg.model_name
+        self.torch_autocast = self.init_cfg.torch_autocast
+        self.include_final_norm = self.init_cfg.include_final_norm
+        task_kind = self.cfg.task_type
         self.exclude_special_tokens = (
-            exclude_special_tokens if exclude_special_tokens is not None else task_type == "mlm"
+            self.init_cfg.exclude_special_tokens
+            if self.init_cfg.exclude_special_tokens is not None
+            else task_kind == "mlm"
         )
 
         self.model: Any | None = None
@@ -202,13 +200,16 @@ class ESM3Backend(ModelBackend):
         return out.sequence
 
     # ------------------------------------------------------------------
-    # Generation internals (mostly as before)
+    # Generation internals
     # ------------------------------------------------------------------
-    def _build_gen_config(self, length: int, gen_cfg: dict[str, Any]):
+    def _build_gen_config(self, length: int, gen_cfg: dict[str, Any] | None):
         from esm.sdk.api import GenerationConfig  # type: ignore
 
+        cfg_kwargs = asdict(self.gen_params)
+        cfg_kwargs.update(gen_cfg or {})
+
         cfg = GenerationConfig(track="sequence", num_steps=max(1, int(length)))
-        for k, v in (gen_cfg or {}).items():
+        for k, v in cfg_kwargs.items():
             try:
                 setattr(cfg, k, v)
             except Exception:

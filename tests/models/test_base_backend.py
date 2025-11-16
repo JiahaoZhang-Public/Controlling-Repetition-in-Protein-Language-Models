@@ -5,14 +5,26 @@ from collections.abc import Sequence
 
 import torch
 
+from replm.config import BackendConfig
 from replm.models.base import ModelBackend
 
 
 class DummyBackend(ModelBackend):
     """Minimal backend to exercise ModelBackend pooling logic."""
 
-    def __init__(self, task_type: str, dim: int = 3):
-        super().__init__(task_type=task_type, device="cpu")
+    def __init__(
+        self,
+        *,
+        backend_cfg: BackendConfig | None = None,
+        task_type: str | None = None,
+        dim: int = 3,
+    ):
+        cfg_kwargs = {}
+        if backend_cfg is None:
+            if task_type is None:
+                raise ValueError("task_type is required for DummyBackend.")
+            cfg_kwargs = {"task_type": task_type, "device": "cpu"}
+        super().__init__(backend_cfg=backend_cfg, **cfg_kwargs)
         self.dim = dim
         self.vocab = {ch: i + 1 for i, ch in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ")}
 
@@ -90,3 +102,8 @@ def test_model_backend_last_nonpad_pooling_uses_final_token():
     ).unsqueeze(-1).repeat(1, 1, backend.dim)
     assert torch.allclose(acts, expected_last)
 
+
+def test_model_backend_accepts_shared_backend_config_instance():
+    cfg = BackendConfig(task_type="mlm", device="cpu", dtype=None)
+    backend = DummyBackend(backend_cfg=cfg, dim=1)
+    assert backend.cfg is cfg

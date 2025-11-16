@@ -6,6 +6,7 @@ from collections.abc import Sequence
 import torch
 from torch import nn
 
+from replm.config import BackendConfig, ESM3InitConfig
 from replm.models.masked.esm3_backend import ESM3Backend
 from replm.models.utils import get_special_ids
 
@@ -87,10 +88,13 @@ def _manual_layer_embeddings(
 
 def test_esm3_backend_matches_manual_hooked_embeddings():
     backend = ESM3Backend(
-        task_type="mlm",
-        device="cpu",
-        torch_autocast=False,
-        include_final_norm=False,
+        backend_cfg=BackendConfig(task_type="mlm"),
+        init_cfg=ESM3InitConfig(
+            model_name="mock",
+            torch_autocast=False,
+            include_final_norm=False,
+            exclude_special_tokens=True,
+        ),
     )
 
     fake_model = FakeESM3Model(hidden_dim=4, num_layers=2)
@@ -108,3 +112,20 @@ def test_esm3_backend_matches_manual_hooked_embeddings():
 
     assert torch.allclose(backend_out, manual_out)
 
+
+def test_esm3_backend_allows_mapping_init_and_generation_configs():
+    backend = ESM3Backend(
+        backend_cfg=BackendConfig(task_type="mlm"),
+        init_cfg={
+            "model_name": "mock",
+            "torch_autocast": False,
+            "include_final_norm": True,
+            "exclude_special_tokens": False,
+        },
+        gen_cfg={"strategy": "entropy", "temperature": 0.9, "num_steps": 15},
+    )
+    assert backend.init_cfg.model_name == "mock"
+    assert backend.init_cfg.include_final_norm is True
+    assert backend.gen_params.strategy == "entropy"
+    assert backend.gen_params.temperature == 0.9
+    assert backend.gen_params.num_steps == 15
