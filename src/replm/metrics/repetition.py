@@ -29,12 +29,12 @@ Notes
 """
 from __future__ import annotations
 
-import math
 import itertools
+import math
 from collections import Counter
-from typing import List, Sequence
+from collections.abc import Sequence
 
-from ..utils.constants import AA_LETTERS, normalize_sequence 
+from ..utils.constants import AA_LETTERS, normalize_sequence
 
 
 def token_level_entropy(seq: str, alphabet: Sequence[str] | None = None) -> float:
@@ -77,7 +77,7 @@ def token_level_entropy(seq: str, alphabet: Sequence[str] | None = None) -> floa
     return float(entropy / denom) if denom > 0 else 0.0
 
 
-def _ngrams(seq: str, n: int) -> List[str]:
+def _ngrams(seq: str, n: int) -> list[str]:
     return [seq[i : i + n] for i in range(0, len(seq) - n + 1)]
 
 

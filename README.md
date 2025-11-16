@@ -8,3 +8,5 @@ Protein Language Models (PLMs) have achieved major breakthroughs in structure pr
 Unlike in text generation, where repetition reduces readability, in proteins it undermines structural stability and biological functionality.
 
 This repository provides the official implementation and reproducible experiments for our paper, which introduces the first systematic framework for understanding and controlling repetition in PLMs.
+
+## Environment Setup

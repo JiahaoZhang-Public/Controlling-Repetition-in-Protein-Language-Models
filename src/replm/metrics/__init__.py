@@ -2,19 +2,19 @@
 
 """
 
+from .repetition import (
+    repetition_metrics,
+    repetition_score,
+)
 from .structure import (
-    StructureProxyModel,
-    StructureConfidenceResult,
-    register_structure_model,
-    get_structure_model,
-    available_structure_models,
     Esm3StructureProxy,
+    StructureConfidenceResult,
+    StructureProxyModel,
+    available_structure_models,
+    get_structure_model,
+    register_structure_model,
 )
 
-from .repetition import (
-    repetition_score,
-    repetition_metrics,
-)
 __all__ = [
     "StructureProxyModel",
     "StructureConfidenceResult",

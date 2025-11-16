@@ -12,9 +12,11 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Any, Dict, Mapping, Optional, Sequence, Tuple, Type, TypeVar
+from typing import Any, TypeVar
+
 import torch
 
 logger = logging.getLogger(__name__)
@@ -33,11 +35,11 @@ class StructureConfidenceResult:
 
     sequence: str
     length: int
-    metrics: Dict[str, float]
+    metrics: dict[str, float]
     model_name: str
-    extras: Dict[str, Any] = field(default_factory=dict)
+    extras: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize to JSON-friendly dict."""
         data = {
             "sequence": self.sequence,
@@ -62,10 +64,10 @@ class StructureProxyModel(ABC):
     name: str = "base"
 
     def __init__(self, **config: Any) -> None:
-        self._config: Dict[str, Any] = dict(config)
+        self._config: dict[str, Any] = dict(config)
 
     @classmethod
-    def get_default_params(cls) -> Dict[str, Any]:
+    def get_default_params(cls) -> dict[str, Any]:
         """Parameters applied unless explicitly overridden."""
         return {}
 
@@ -83,7 +85,7 @@ class StructureProxyModel(ABC):
         )
 
     @abstractmethod
-    def _predict(self, sequence: str, **params: Any) -> Tuple[Mapping[str, float], Dict[str, Any]]:
+    def _predict(self, sequence: str, **params: Any) -> tuple[Mapping[str, float], dict[str, Any]]:
         """Subclass hook that returns ``(metrics, extras)``."""
 
     @staticmethod
@@ -98,10 +100,10 @@ class StructureProxyModel(ABC):
 # --------------------------------------------------------------------------- #
 
 
-_STRUCTURE_MODEL_REGISTRY: Dict[str, Type[StructureProxyModel]] = {}
+_STRUCTURE_MODEL_REGISTRY: dict[str, type[StructureProxyModel]] = {}
 
 
-def register_structure_model(cls: Type[TProxy]) -> Type[TProxy]:
+def register_structure_model(cls: type[TProxy]) -> type[TProxy]:
     """Decorator to register proxy implementations."""
     name = getattr(cls, "name", None)
     if not name:
@@ -146,7 +148,7 @@ class Esm3StructureProxy(StructureProxyModel):
         "only_compute_backbone_rmsd",
     )
 
-    _DEFAULT_PARAMS: Dict[str, Any] = {
+    _DEFAULT_PARAMS: dict[str, Any] = {
         "model_name": "esm3-open",
         "device": None,
         "num_steps": 8,
@@ -160,10 +162,10 @@ class Esm3StructureProxy(StructureProxyModel):
     }
 
     @classmethod
-    def get_default_params(cls) -> Dict[str, Any]:
+    def get_default_params(cls) -> dict[str, Any]:
         return dict(cls._DEFAULT_PARAMS)
 
-    def _predict(self, sequence: str, **params: Any) -> Tuple[Mapping[str, float], Dict[str, Any]]:
+    def _predict(self, sequence: str, **params: Any) -> tuple[Mapping[str, float], dict[str, Any]]:
         model_name = params.pop("model_name", self._DEFAULT_PARAMS["model_name"])
         device = params.pop("device", None)
         generation_kwargs = {k: params.get(k, self._DEFAULT_PARAMS[k]) for k in self._GENERATION_ARGS}
@@ -172,7 +174,7 @@ class Esm3StructureProxy(StructureProxyModel):
         try:
             from esm.sdk.api import ESMProtein, GenerationConfig
         except ImportError as exc:  # pragma: no cover - dependency may not be installed
-            raise RuntimeError("ESM3 dependencies are missing. Install `esm` to enable structure metrics.") from exc
+            raise RuntimeError("ESM3 dependencies are missing. Install `esm` to enable structure metrics.") from exc  # noqa: E501
 
         protein = ESMProtein(sequence=sequence)
         gen_config = GenerationConfig(track="structure", **generation_kwargs)
@@ -212,7 +214,7 @@ class Esm3StructureProxy(StructureProxyModel):
 
     @staticmethod
     @lru_cache(maxsize=4)
-    def _load_client(model_name: str, device: Optional[str]) -> Any:
+    def _load_client(model_name: str, device: str | None) -> object:
         try:
             from esm.models.esm3 import ESM3
         except ImportError as exc:  # pragma: no cover - dependency may not be installed

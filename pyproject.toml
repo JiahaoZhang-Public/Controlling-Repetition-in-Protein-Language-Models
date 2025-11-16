@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "replm"
+version = "0.1.0"
+description = "Controlling Repetition in Protein Language Models"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Jiahao Zhang", email = "jiahao.zhang@mbzuai.ac.ae" }]
+keywords = ["protein-language-models", "repetition", "transformers", "bioinformatics"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+]
+
+dependencies = [
+  "torch",
+  "numpy",
+  "esm" # esm3
+]
+
+[project.optional-dependencies]
+dev = ["black", "ruff", "pytest", "mypy"]
+docs = ["mkdocs>=1.5", "mkdocs-material>=9.5"]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["replm*"]
+
+[tool.black]
+line-length = 108
+target-version = ["py310", "py311"]
+
+[tool.ruff]
+line-length = 108
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
