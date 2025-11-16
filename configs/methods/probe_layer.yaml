@@ -1,0 +1,7 @@
+_target_: replm.steer.methods.probe.ProbeNaiveBinary
+layer: 0
+normalize: true
+alpha: 1.0
+lr: 0.01
+epochs: 200
+weight_decay: 0.0
