@@ -27,17 +27,20 @@ Notes
   contribute to n-gram counting if present in the string. You can override this by passing
   an explicit `alphabet` argument.
 """
+
 from __future__ import annotations
 
 import itertools
 import math
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Collection
 
 from ..utils.constants import AA_LETTERS, normalize_sequence
 
+Alphabet = Collection[str]
 
-def token_level_entropy(seq: str, alphabet: Sequence[str] | None = None) -> float:
+
+def token_level_entropy(seq: str, alphabet: Alphabet | None = None) -> float:
     """Compute normalized token-level Shannon entropy H_norm in [0, 1].
 
     Parameters
@@ -52,12 +55,11 @@ def token_level_entropy(seq: str, alphabet: Sequence[str] | None = None) -> floa
     float
         Normalized entropy H_norm(x).
     """
-    if alphabet is None:
-        alphabet = AA_LETTERS
+    letters: Alphabet = AA_LETTERS if alphabet is None else alphabet
     seq = normalize_sequence(seq)
 
     # Count only characters that are part of the alphabet for the unigram distribution.
-    counts = Counter(ch for ch in seq if ch in alphabet)
+    counts = Counter(ch for ch in seq if ch in letters)
     total = sum(counts.values())
 
     if total == 0:
@@ -65,7 +67,7 @@ def token_level_entropy(seq: str, alphabet: Sequence[str] | None = None) -> floa
 
     # Shannon entropy base 2.
     entropy = 0.0
-    for a in alphabet:
+    for a in letters:
         c = counts.get(a, 0)
         if c == 0:
             continue
@@ -73,7 +75,7 @@ def token_level_entropy(seq: str, alphabet: Sequence[str] | None = None) -> floa
         entropy -= p * math.log(p, 2)
 
     # Normalize by log2(|A|).
-    denom = math.log(len(alphabet), 2)
+    denom = math.log(len(letters), 2)
     return float(entropy / denom) if denom > 0 else 0.0
 
 
@@ -130,7 +132,7 @@ def homopolymer_diversity(seq: str, k: int = 4) -> float:
     return float(1.0 - frac)
 
 
-def repetition_metrics(seq: str, k: int = 4, *, alphabet: Sequence[str] | None = None) -> dict:
+def repetition_metrics(seq: str, k: int = 4, *, alphabet: Alphabet | None = None) -> dict:
     """Convenience wrapper returning all three metrics.
 
     Returns
@@ -145,9 +147,9 @@ def repetition_metrics(seq: str, k: int = 4, *, alphabet: Sequence[str] | None =
     }
 
 
-def repetition_score(seq: str, k: int = 4, *, alphabet: Sequence[str] | None = None) -> float:
+def repetition_score(seq: str, k: int = 4, *, alphabet: Alphabet | None = None) -> float:
     """Aggregate the three metrics into a single score.
-    
+
     R(x) = (H_norm + (Distinct-2 + Distinct-3) / 2 + R_hpoly) / 3
 
     Returns

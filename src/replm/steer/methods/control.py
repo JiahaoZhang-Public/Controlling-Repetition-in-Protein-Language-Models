@@ -34,7 +34,10 @@ class ControlNoOp(SteerMethod):
 
     def fit(self, data: ActivationBatch) -> SteerResult:
         # Return an empty by_layer mapping and minimal meta.
-        return SteerResult(by_layer={}, meta={
-            "kind": "control",
-            "note": "no-op baseline (no edits produced)",
-        })
+        return SteerResult(
+            by_layer={},
+            meta={
+                "kind": "control",
+                "note": "no-op baseline (no edits produced)",
+            },
+        )

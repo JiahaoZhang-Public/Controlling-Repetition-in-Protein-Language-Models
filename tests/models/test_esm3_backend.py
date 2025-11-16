@@ -41,9 +41,7 @@ class FakeESM3Model(nn.Module):
         super().__init__()
         self.hidden_dim = hidden_dim
         self.transformer = nn.Module()
-        self.transformer.blocks = nn.ModuleList(
-            FakeBlock(i, hidden_dim) for i in range(num_layers)
-        )
+        self.transformer.blocks = nn.ModuleList(FakeBlock(i, hidden_dim) for i in range(num_layers))
         self.transformer.norm = nn.Identity()
         self.tokenizers = type("Toks", (), {"sequence": FakeTokenizer()})()
 

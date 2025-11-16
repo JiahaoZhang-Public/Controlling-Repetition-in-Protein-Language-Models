@@ -99,16 +99,20 @@ def coalesce_layer(edits: Sequence[AffineEdit]) -> LayerProgram:
 
     if sparse_mul_map or sparse_add_map:
         dims_sorted = sorted(set(sparse_mul_map) | set(sparse_add_map))
-        dims_tensor = torch.as_tensor(dims_sorted, dtype=torch.long)
-        sparse_mul = torch.ones(len(dims_sorted), dtype=torch.float32)
-        sparse_add = torch.zeros(len(dims_sorted), dtype=torch.float32)
+        dims_tensor: Tensor | None = torch.as_tensor(dims_sorted, dtype=torch.long)
+        sparse_mul_tensor = torch.ones(len(dims_sorted), dtype=torch.float32)
+        sparse_add_tensor = torch.zeros(len(dims_sorted), dtype=torch.float32)
         for j, dim in enumerate(dims_sorted):
             if dim in sparse_mul_map:
-                sparse_mul[j] = sparse_mul_map[dim]
+                sparse_mul_tensor[j] = sparse_mul_map[dim]
             if dim in sparse_add_map:
-                sparse_add[j] = sparse_add_map[dim]
+                sparse_add_tensor[j] = sparse_add_map[dim]
+        sparse_mul = sparse_mul_tensor
+        sparse_add = sparse_add_tensor
     else:
-        dims_tensor = sparse_mul = sparse_add = None
+        dims_tensor = None
+        sparse_mul = None
+        sparse_add = None
 
     return LayerProgram(
         dense_mul=dense_mul,

@@ -22,9 +22,7 @@ class DummyTransformer(nn.Module):
     def __init__(self, hidden: int, layers: int):
         super().__init__()
         self.transformer = nn.Module()
-        self.transformer.blocks = nn.ModuleList(
-            IdentityBlock(hidden) for _ in range(layers)
-        )
+        self.transformer.blocks = nn.ModuleList(IdentityBlock(hidden) for _ in range(layers))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = x

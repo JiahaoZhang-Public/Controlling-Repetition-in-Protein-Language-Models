@@ -1,7 +1,6 @@
-"""Metric utilities for repetition-control experiments.
+"""Metric utilities for repetition-control experiments."""
 
-"""
-
+from .diversity import pairwise_percent_identity
 from .repetition import (
     repetition_metrics,
     repetition_score,
@@ -22,6 +21,7 @@ __all__ = [
     "get_structure_model",
     "available_structure_models",
     "Esm3StructureProxy",
+    "pairwise_percent_identity",
     "repetition_score",
     "repetition_metrics",
 ]

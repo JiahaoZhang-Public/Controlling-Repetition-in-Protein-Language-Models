@@ -1,6 +1,8 @@
 # VSCode project settings
 /.vscode/
 
+# development cache
+.ruff_cache/
 
 #-------------Python gitignore template----------
 # Byte-compiled / optimized / DLL files

@@ -2,7 +2,7 @@
 """
 Base abstract class for dataset providers.
 
-A dataset provider is responsible for building a dataset and providing iterators for 
+A dataset provider is responsible for building a dataset and providing iterators for
 positive and negative examples.
 
 The dataset is built into a manifest file that records the metadata of the dataset.

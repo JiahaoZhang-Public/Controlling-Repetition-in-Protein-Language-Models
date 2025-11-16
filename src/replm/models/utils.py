@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, cast
 
 import torch
 from torch import nn
@@ -67,9 +67,7 @@ def tokenize_sequence(seq: str, tokenizer: Any, *, add_special_tokens: bool = Tr
         raise ImportError(
             "Tokenizer does not provide encode/tokenize and esm.utils.encoding is unavailable."
         ) from e
-    return list(
-        esm_encoding.tokenize_sequence(seq, tokenizer, add_special_tokens=add_special_tokens)
-    )
+    return list(esm_encoding.tokenize_sequence(seq, tokenizer, add_special_tokens=add_special_tokens))
 
 
 def get_special_ids(tokenizer: Any) -> tuple[set[int], int]:
@@ -100,7 +98,8 @@ def batch_tokenize(seqs: list[str], tokenizer: Any, pad_id: int) -> torch.LongTe
     ids = [torch.tensor(tokenize_sequence(seq, tokenizer), dtype=torch.long) for seq in seqs]
     from torch.nn.utils.rnn import pad_sequence
 
-    return pad_sequence(ids, batch_first=True, padding_value=pad_id)
+    padded = pad_sequence(ids, batch_first=True, padding_value=pad_id)
+    return cast(torch.LongTensor, padded)
 
 
 def build_attention_mask(
@@ -112,9 +111,7 @@ def build_attention_mask(
 ) -> torch.Tensor:
     mask = tokens != pad_id
     if exclude_special_tokens and special_token_ids:
-        specials = torch.as_tensor(
-            list(special_token_ids), dtype=torch.long, device=tokens.device
-        )
+        specials = torch.as_tensor(list(special_token_ids), dtype=torch.long, device=tokens.device)
         if specials.numel() > 0:
             try:
                 special_mask = torch.isin(tokens, specials)

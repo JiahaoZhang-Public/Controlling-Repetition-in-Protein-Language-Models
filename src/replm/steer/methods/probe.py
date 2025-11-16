@@ -12,7 +12,7 @@ Minimal knobs:
 - alpha (default: 1.0)
 
 Fixed internal training hyperparams:
-- epochs = 200, lr = 1e-2, weight_decay = 0.0 
+- epochs = 200, lr = 1e-2, weight_decay = 0.0
 """
 
 from __future__ import annotations
@@ -89,10 +89,13 @@ class ProbeNaiveBinary(SteerMethod):
 
         # build training matrix and labels
         Xf = torch.cat([Xp, Xn], dim=0).to(torch.float32)  # (M, D)
-        yf = torch.cat([
-            torch.ones(Xp.shape[0], dtype=torch.float32, device=Xf.device),
-            torch.zeros(Xn.shape[0], dtype=torch.float32, device=Xf.device),
-        ], dim=0)  # (M,)
+        yf = torch.cat(
+            [
+                torch.ones(Xp.shape[0], dtype=torch.float32, device=Xf.device),
+                torch.zeros(Xn.shape[0], dtype=torch.float32, device=Xf.device),
+            ],
+            dim=0,
+        )  # (M,)
 
         M, D = Xf.shape
         device = Xf.device
@@ -104,7 +107,7 @@ class ProbeNaiveBinary(SteerMethod):
         model.train()
         for _ in range(self.epochs):
             optim.zero_grad(set_to_none=True)
-            logits = model(Xf).squeeze(-1)           # (M,)
+            logits = model(Xf).squeeze(-1)  # (M,)
             loss = criterion(logits, yf)
             loss.backward()
             optim.step()

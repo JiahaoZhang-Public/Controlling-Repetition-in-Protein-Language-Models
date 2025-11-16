@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict
-from typing import Any
+from typing import Any, cast
 
 import torch
 from torch import nn
@@ -54,9 +54,7 @@ class ESM3Backend(ModelBackend):
 
         self._device = torch.device(self.cfg.device)
         self._target_dtype = resolve_torch_dtype(self.cfg.dtype)
-        self._autocast_device = (
-            self._device.type if self._device.type in {"cuda", "mps"} else None
-        )
+        self._autocast_device = self._device.type if self._device.type in {"cuda", "mps"} else None
         self._autocast_enabled = bool(self.torch_autocast and self._autocast_device)
         self._autocast_dtype = torch.float16
 
@@ -102,7 +100,7 @@ class ESM3Backend(ModelBackend):
             special_token_ids=self._special_ids,
             exclude_special_tokens=self.exclude_special_tokens,
         )
-        tokens = tokens.to(self._device, non_blocking=True)
+        tokens = cast(torch.LongTensor, tokens.to(self._device, non_blocking=True))
         mask = mask.to(self._device, non_blocking=True)
         return {"tokens": tokens, "mask": mask}
 
@@ -163,12 +161,15 @@ class ESM3Backend(ModelBackend):
         return self._blocks[layer_idx]
 
     def _run_model(self, tokens: torch.Tensor) -> None:
+        model = self.model
+        if model is None:
+            raise RuntimeError("Call load() before activations().")
         kwargs = {"sequence_tokens": tokens}
         if self._autocast_enabled and self._autocast_device is not None:
             with torch.autocast(device_type=self._autocast_device, dtype=self._autocast_dtype):
-                self.model(**kwargs)
+                model(**kwargs)
         else:
-            self.model(**kwargs)
+            model(**kwargs)
 
     # ------------------------------------------------------------------
     # Generation helpers (unchanged API)

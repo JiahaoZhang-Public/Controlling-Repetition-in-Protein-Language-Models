@@ -37,7 +37,7 @@ class StructureConfidenceResult:
 
     sequence: str
     length: int
-    metrics: dict[str, float]
+    metrics: dict[str, float | None]
     model_name: str
     extras: dict[str, Any] = field(default_factory=dict)
 
@@ -87,8 +87,9 @@ class StructureProxyModel(ABC):
         )
 
     @abstractmethod
-    def _predict(self, sequence: str, **params: Any) -> tuple[Mapping[str, float], dict[str, Any]]:
+    def _predict(self, sequence: str, **params: Any) -> tuple[Mapping[str, float | None], dict[str, Any]]:
         """Subclass hook that returns ``(metrics, extras)``."""
+
 
 # --------------------------------------------------------------------------- #
 #                                Registry                                     #
@@ -160,16 +161,21 @@ class Esm3StructureProxy(StructureProxyModel):
     def get_default_params(cls) -> dict[str, Any]:
         return dict(cls._DEFAULT_PARAMS)
 
-    def _predict(self, sequence: str, **params: Any) -> tuple[Mapping[str, float], dict[str, Any]]:
+    def _predict(self, sequence: str, **params: Any) -> tuple[Mapping[str, float | None], dict[str, Any]]:
         model_name = params.pop("model_name", self._DEFAULT_PARAMS["model_name"])
         device = params.pop("device", None)
         generation_kwargs = {k: params.get(k, self._DEFAULT_PARAMS[k]) for k in self._GENERATION_ARGS}
         client = self._load_client(model_name=model_name, device=device)
 
         try:
-            from esm.sdk.api import ESMProtein, GenerationConfig
+            from esm.sdk.api import (  # type: ignore[import-not-found, import-untyped]
+                ESMProtein,
+                GenerationConfig,
+            )
         except ImportError as exc:  # pragma: no cover - dependency may not be installed
-            raise RuntimeError("ESM3 dependencies are missing. Install `esm` to enable structure metrics.") from exc  # noqa: E501
+            raise RuntimeError(
+                "ESM3 dependencies are missing. Install `esm` to enable structure metrics."
+            ) from exc  # noqa: E501
 
         protein = ESMProtein(sequence=sequence)
         gen_config = GenerationConfig(track="structure", **generation_kwargs)
@@ -209,9 +215,9 @@ class Esm3StructureProxy(StructureProxyModel):
 
     @staticmethod
     @lru_cache(maxsize=4)
-    def _load_client(model_name: str, device: str | None) -> object:
+    def _load_client(model_name: str, device: str | None) -> Any:
         try:
-            from esm.models.esm3 import ESM3
+            from esm.models.esm3 import ESM3  # type: ignore[import-not-found, import-untyped]
         except ImportError as exc:  # pragma: no cover - dependency may not be installed
             raise RuntimeError("ESM3 dependencies are missing. Install `esm`.") from exc
         resolved_device = device or ("cuda" if torch.cuda.is_available() else "cpu")

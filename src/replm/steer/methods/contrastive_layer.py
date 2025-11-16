@@ -30,10 +30,10 @@ from .base import ActivationBatch, InputSpec, SteerMethod, SteerResult
 @register_method("contrastive_layer")
 @dataclass
 class ContrastiveLayer(SteerMethod):
-    layer: int = 0           # REQUIRED: the layer to edit
-    normalize: bool = False   # L2 normalize the direction
+    layer: int = 0  # REQUIRED: the layer to edit
+    normalize: bool = False  # L2 normalize the direction
     var_scale: bool = False  # divide by (var_pos + var_neg) per dim
-    alpha: float = 1.0       # global strength multiplier
+    alpha: float = 1.0  # global strength multiplier
     eps: float = 1e-6
 
     # ---------------- protocol ----------------
@@ -51,11 +51,13 @@ class ContrastiveLayer(SteerMethod):
         raise ValueError("Activation tensor must be (N,D) or (N,T,D)")
 
     def _direction(self, Xp: Tensor, Xn: Tensor) -> Tensor:
-        mu_p = Xp.mean(dim=0, dtype=torch.float64)
-        mu_n = Xn.mean(dim=0, dtype=torch.float64)
+        Xp64 = Xp.to(torch.float64)
+        Xn64 = Xn.to(torch.float64)
+        mu_p = Xp64.mean(dim=0)
+        mu_n = Xn64.mean(dim=0)
         w = mu_p - mu_n  # (D,)
         if self.var_scale:
-            v = Xp.var(dim=0, unbiased=False, dtype=torch.float64) + Xn.var(dim=0, unbiased=False, dtype=torch.float64) + self.eps # noqa: E501
+            v = Xp64.var(dim=0, unbiased=False) + Xn64.var(dim=0, unbiased=False) + self.eps  # noqa: E501
             w = w / v
         if self.normalize:
             n = torch.linalg.norm(w) + self.eps

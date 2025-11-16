@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from contextlib import AbstractContextManager
-from typing import Dict, List, Tuple
+from typing import Literal
 
 import torch
 from torch import nn
@@ -37,16 +37,16 @@ class Steerer(AbstractContextManager):
         model: nn.Module,
         specs: Sequence[AffineEdit] | None = None,
         *,
-        layer_attr_path: Tuple[str, str] = ("transformer", "blocks"),
+        layer_attr_path: tuple[str, str] = ("transformer", "blocks"),
         output_index: int = 0,
     ) -> None:
         self.model = model
         self.output_index = int(output_index)
 
-        self._handles: List[torch.utils.hooks.RemovableHandle] = []
+        self._handles: list[torch.utils.hooks.RemovableHandle] = []
         self._active = False
 
-        self._by_layer: Dict[int, List[AffineEdit]] = {}
+        self._by_layer: dict[int, list[AffineEdit]] = {}
         for edit in specs or ():
             self._by_layer.setdefault(int(edit.layer), []).append(edit)
 
@@ -60,7 +60,7 @@ class Steerer(AbstractContextManager):
             )
 
     # ------------------------------------------------------------------ context manager
-    def __enter__(self) -> "Steerer":
+    def __enter__(self) -> Steerer:
         if self._active:
             return self
 
@@ -72,7 +72,7 @@ class Steerer(AbstractContextManager):
         self._active = True
         return self
 
-    def __exit__(self, exc_type, exc, tb) -> bool:
+    def __exit__(self, exc_type, exc, tb) -> Literal[False]:
         for handle in self._handles:
             handle.remove()
         self._handles.clear()
@@ -80,7 +80,7 @@ class Steerer(AbstractContextManager):
         return False
 
     # ------------------------------------------------------------------ helpers
-    def _resolve_blocks(self, layer_attr_path: Tuple[str, ...]) -> nn.ModuleList:
+    def _resolve_blocks(self, layer_attr_path: tuple[str, ...]) -> nn.ModuleList:
         obj: nn.Module = self.model
         for attr in layer_attr_path:
             if not hasattr(obj, attr):
@@ -93,7 +93,7 @@ class Steerer(AbstractContextManager):
         return obj
 
     def _make_hook(self, program: LayerProgram):
-        """Apply compiled affine updates in the order: dense mul -> dense add -> sparse mul -> sparse add."""
+        """Apply compiled affine updates in the order: dense mul -> dense add -> sparse mul -> sparse add."""  # noqa: E501
 
         def _apply_with_mask(original: Tensor, edited: Tensor, mask: Tensor | None) -> Tensor:
             if mask is None:

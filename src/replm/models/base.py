@@ -3,15 +3,18 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 try:
     import torch
-    from torch import Tensor
 except Exception:  # pragma: no cover
-    torch = None
+    torch = None  # type: ignore[assignment]
+
+if TYPE_CHECKING:
+    from torch import Tensor
+else:
     Tensor = Any
 
 from ..config import BackendConfig, Pooling
@@ -143,7 +146,7 @@ class ModelBackend(ABC):
         self,
         token_batch: Any,
         layers: Sequence[int],
-        ) -> tuple[list[Tensor], Tensor | None]:
+    ) -> tuple[list[Tensor], Tensor | None]:
         """
         Returns:
           - hidden_list: list(len=layers) of tensors (B, T, D), each for one requested layer

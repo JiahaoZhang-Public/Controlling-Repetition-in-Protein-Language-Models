@@ -8,8 +8,8 @@ TaskType = Literal["mlm", "causal"]
 Pooling = Literal["mean", "last_nonpad"]
 T = TypeVar("T")
 
-ScheduleType = Literal["cosine", "linear"] # ESM3GenerationConfig
-StrategyType = Literal["random", "entropy"] # ESM3GenerationConfig
+ScheduleType = Literal["cosine", "linear"]  # ESM3GenerationConfig
+StrategyType = Literal["random", "entropy"]  # ESM3GenerationConfig
 
 
 def _materialize_config(obj: Any) -> Any:
@@ -70,6 +70,7 @@ class ModelBuildConfig:
     name: str
     backend: BackendConfig
     params: dict[str, Any] = field(default_factory=dict)
+
 
 @dataclass
 class ESM3InitConfig:

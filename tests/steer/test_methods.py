@@ -81,6 +81,7 @@ def test_probe_naive_binary_learns_direction():
     assert torch.allclose(edit.add[0], torch.tensor(1.0), atol=1e-2)
     assert abs(float(edit.add[1])) < 0.2
 
+
 def test_neuron_topk_global_ranking_sets_mul_to_zero():
     layer0 = torch.tensor(
         [

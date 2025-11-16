@@ -75,13 +75,17 @@ def test_model_backend_mean_pooling_handles_variable_length_sequences():
     acts = backend.activations(sequences, layers, batch_size=2)
     assert acts.shape == (2, len(layers), backend.dim)
 
-    expected_means = torch.tensor(
-        [
-            [(1 + 2 + 3) / 3, (1 + 2 + 3) / 3 + 1],
-            [(1 + 4) / 2, (1 + 4) / 2 + 1],
-        ],
-        dtype=torch.float32,
-    ).unsqueeze(-1).repeat(1, 1, backend.dim)
+    expected_means = (
+        torch.tensor(
+            [
+                [(1 + 2 + 3) / 3, (1 + 2 + 3) / 3 + 1],
+                [(1 + 4) / 2, (1 + 4) / 2 + 1],
+            ],
+            dtype=torch.float32,
+        )
+        .unsqueeze(-1)
+        .repeat(1, 1, backend.dim)
+    )
     assert torch.allclose(acts, expected_means)
 
 
@@ -93,13 +97,17 @@ def test_model_backend_last_nonpad_pooling_uses_final_token():
     acts = backend.activations(sequences, layers, batch_size=1)
     assert acts.shape == (2, len(layers), backend.dim)
 
-    expected_last = torch.tensor(
-        [
-            [3, 3 + 2],  # last token of "BAC" is C -> 3
-            [4, 4 + 2],  # last token of "DD" is D -> 4
-        ],
-        dtype=torch.float32,
-    ).unsqueeze(-1).repeat(1, 1, backend.dim)
+    expected_last = (
+        torch.tensor(
+            [
+                [3, 3 + 2],  # last token of "BAC" is C -> 3
+                [4, 4 + 2],  # last token of "DD" is D -> 4
+            ],
+            dtype=torch.float32,
+        )
+        .unsqueeze(-1)
+        .repeat(1, 1, backend.dim)
+    )
     assert torch.allclose(acts, expected_last)
 
 
