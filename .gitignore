@@ -4,6 +4,8 @@
 # development cache
 .ruff_cache/
 
+outputs/
+
 #-------------Python gitignore template----------
 # Byte-compiled / optimized / DLL files
 __pycache__/

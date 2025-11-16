@@ -28,3 +28,9 @@ pytest
 ```
 
 Configurations are managed via Hydra; override modules by selecting configs under `configs/{datasets,models,methods}` when running CLI entry points.
+
+### Adding a custom dataset
+
+1. Implement a class that inherits `replm.datasets.base.DatasetProvider` and overrides `iter_pos`, `iter_neg`, and optionally `build`.
+2. Create a new Hydra config under `configs/dataset/<name>.yaml` with `_target_` pointing to your class (and any kwargs).
+3. Launch experiments with `dataset=<name>` to select the provider.

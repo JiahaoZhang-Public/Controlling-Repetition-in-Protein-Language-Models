@@ -1,0 +1,37 @@
+defaults:
+  - dataset: toy
+  - models: esm3
+  - methods: control
+  - _self_
+
+exp:
+  id: demo
+
+io:
+  root: outputs # {output_dir}
+  save_activations: false # {save_activations}
+
+runtime:
+  seed: 42 # {seed}
+  device: cpu # {device}
+
+split:
+  train: 1 # {train}
+  test: 1 # {test}
+
+model:
+  layers: [0] # {layers}
+  activation:
+    batch_size: 1 # {batch_size}
+  layer_attr_path: ["transformer", "blocks"] # {layer_attr_path}
+
+generation:
+  uncond:
+    n: 1 # {uncond_n}
+    length_min: 32 # {uncond_length_min}
+    length_max: 64 # {uncond_length_max}
+    overrides: {}
+  prefix:
+    n: 1 # {prefix_n}
+    prefix_frac: 0.2
+    overrides: {}

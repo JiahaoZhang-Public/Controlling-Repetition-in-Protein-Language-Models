@@ -1,0 +1,2 @@
+# Minimal toy dataset provider.
+_target_: replm.datasets.toy.ToyProteinDataset

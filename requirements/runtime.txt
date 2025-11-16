@@ -1,4 +1,6 @@
 torch
 numpy
-hydra-core>=1.3
+hydra-core
 esm
+
+httpx # for esm3

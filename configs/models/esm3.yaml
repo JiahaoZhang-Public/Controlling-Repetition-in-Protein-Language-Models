@@ -5,6 +5,6 @@ defaults:
 name: esm3
 backend:
   task_type: mlm
-  device: cpu
+  device: ${runtime.device}
   dtype: null
   default_pooling: null
