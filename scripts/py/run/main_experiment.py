@@ -12,6 +12,7 @@ Pipeline:
 """
 from __future__ import annotations
 
+import inspect
 import json
 import logging
 import random
@@ -124,7 +125,38 @@ def _summarize_edits(edits_by_layer) -> list[dict]:
     return summary
 
 
-@hydra.main(config_path="../../../configs", config_name="main", version_base=None)
+def _instantiate_backend(model_cfg: DictConfig):
+    backend_cfg = BackendConfig(**OmegaConf.to_container(model_cfg.backend, resolve=True))
+    params_cfg = model_cfg.get("params", {})
+    if OmegaConf.is_config(params_cfg):
+        unfiltered = OmegaConf.to_container(params_cfg, resolve=True) or {}
+    else:
+        unfiltered = dict(params_cfg or {})
+
+    init_cfg = instantiate(model_cfg.init) if "init" in model_cfg else None
+    generation_cfg = instantiate(model_cfg.generation) if "generation" in model_cfg else None
+
+    backend_cls = get_model_class(model_cfg.name)
+    sig = inspect.signature(backend_cls.__init__)
+    accepted = set(sig.parameters)
+    has_var_kwargs = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values())
+    if has_var_kwargs:
+        params = dict(unfiltered)
+    else:
+        params = {k: v for k, v in unfiltered.items() if k in accepted}
+
+    if init_cfg is not None and "init_cfg" in accepted:
+        params["init_cfg"] = init_cfg
+    if generation_cfg is not None and "gen_cfg" in accepted:
+        params["gen_cfg"] = generation_cfg
+
+    return backend_cls(backend_cfg=backend_cfg, **params)
+
+
+CONFIG_PATH = Path(__file__).resolve().parents[3] / "configs"
+
+
+@hydra.main(config_path=str(CONFIG_PATH), config_name="main", version_base=None)
 def main(cfg: DictConfig) -> None:
     seed = int(cfg.runtime.seed)
     random.seed(seed)
@@ -183,11 +215,7 @@ def main(cfg: DictConfig) -> None:
     )
 
     # ----- model backend -----
-    backend_cfg = BackendConfig(**OmegaConf.to_container(cfg.models.backend, resolve=True))
-    backend_cls = get_model_class(cfg.models.name)
-    init_cfg = instantiate(cfg.models.init) if "init" in cfg.models else None
-    gen_cfg = instantiate(cfg.models.generation) if "generation" in cfg.models else None
-    backend = backend_cls(backend_cfg=backend_cfg, init_cfg=init_cfg, gen_cfg=gen_cfg)
+    backend = _instantiate_backend(cfg.models)
     backend.load()
     layers = list(cfg.model.layers)
     batch_size = int(cfg.model.activation.batch_size)
@@ -233,12 +261,21 @@ def main(cfg: DictConfig) -> None:
     uncond_cfg = OmegaConf.to_container(cfg.generation.uncond.overrides, resolve=True)
     prefix_cfg = OmegaConf.to_container(cfg.generation.prefix.overrides, resolve=True)
 
+    from contextlib import nullcontext
+
+    def _steer_context():
+        if edits:
+            return Steerer(backend.model, specs=edits, layer_attr_path=layer_path)
+        return nullcontext()
+
     def _generate_uncond() -> list[SequenceRecord]:
         outputs: list[SequenceRecord] = []
         with torch.no_grad():
-            with Steerer(backend.model, specs=edits, layer_attr_path=layer_path):
+            with _steer_context():
                 for i in range(cfg.generation.uncond.n):
-                    length = random.randint(cfg.generation.uncond.length_min, cfg.generation.uncond.length_max) # noqa: E501
+                    length = random.randint(
+                        cfg.generation.uncond.length_min, cfg.generation.uncond.length_max
+                    )
                     seq = backend.generate_uncond(length=int(length), **(uncond_cfg or {}))
                     outputs.append(SequenceRecord(seq_id=f"uncond_{i}", sequence=seq))
         return outputs
@@ -248,7 +285,7 @@ def main(cfg: DictConfig) -> None:
         subset = random.sample(pos_test, count) if count and len(pos_test) >= count else pos_test[:count]
         outputs: list[tuple[SequenceRecord, SequenceRecord]] = []
         with torch.no_grad():
-            with Steerer(backend.model, specs=edits, layer_attr_path=layer_path):
+            with _steer_context():
                 for src in subset:
                     L = len(src.sequence)
                     pref_len = max(1, int(cfg.generation.prefix.prefix_frac * L))

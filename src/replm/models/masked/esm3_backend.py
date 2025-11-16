@@ -9,7 +9,7 @@ from typing import Any, cast
 import torch
 from torch import nn
 
-from ...config import BackendConfig, ESM3GenerationConfig, ESM3InitConfig, coerce_config
+from ...config import BackendConfig, coerce_config
 from .. import register_model
 from ..base import ModelBackend
 from ..utils import (
@@ -20,6 +20,7 @@ from ..utils import (
     get_special_ids,
     resolve_torch_dtype,
 )
+from .esm3_config import ESM3GenerationConfig, ESM3InitConfig
 
 
 @register_model("esm3")

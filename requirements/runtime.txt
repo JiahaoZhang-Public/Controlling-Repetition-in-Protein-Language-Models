@@ -1,6 +1,7 @@
 torch
 numpy
 hydra-core
-esm
+transformers
 
 httpx # for esm3
+esm # for esm3

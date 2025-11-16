@@ -1,6 +1,6 @@
 defaults:
   - dataset: toy
-  - models: esm3
+  - models: protgpt2
   - methods: control
   - _self_
 
@@ -20,15 +20,15 @@ split:
   test: 1 # {test}
 
 model:
-  layers: [0] # {layers}
+  layers: [1] # {layers}
   activation:
     batch_size: 1 # {batch_size}
   layer_attr_path: ["transformer", "blocks"] # {layer_attr_path}
 
 generation:
   uncond:
-    n: 1 # {uncond_n}
-    length_min: 32 # {uncond_length_min}
+    n: 10 # {uncond_n}
+    length_min: 64 # {uncond_length_min}
     length_max: 64 # {uncond_length_max}
     overrides: {}
   prefix:

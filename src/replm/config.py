@@ -1,3 +1,5 @@
+# src/replm/config.py
+
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -7,9 +9,6 @@ from typing import Any, Literal, TypeVar
 TaskType = Literal["mlm", "causal"]
 Pooling = Literal["mean", "last_nonpad"]
 T = TypeVar("T")
-
-ScheduleType = Literal["cosine", "linear"]  # ESM3GenerationConfig
-StrategyType = Literal["random", "entropy"]  # ESM3GenerationConfig
 
 
 def _materialize_config(obj: Any) -> Any:
@@ -72,37 +71,9 @@ class ModelBuildConfig:
     params: dict[str, Any] = field(default_factory=dict)
 
 
-@dataclass
-class ESM3InitConfig:
-    model_name: str = "esm3-open"
-    torch_autocast: bool = True
-    include_final_norm: bool = False
-    exclude_special_tokens: bool | None = None
-
-
-@dataclass
-class ESM3GenerationConfig:
-    """
-    Mirror of esm.sdk.api.GenerationConfig's high-level knobs.
-    """
-
-    track: str = "sequence"
-    invalid_ids: list[int] = field(default_factory=list)
-    schedule: ScheduleType = "cosine"
-    strategy: StrategyType = "random"
-    num_steps: int = 20
-    temperature: float = 1.0
-    temperature_annealing: bool = True
-    top_p: float = 1.0
-    condition_on_coordinates_only: bool = True
-    only_compute_backbone_rmsd: bool = False
-
-
 __all__ = [
     "BackendConfig",
     "ModelBuildConfig",
-    "ESM3InitConfig",
-    "ESM3GenerationConfig",
     "Pooling",
     "TaskType",
     "coerce_config",

@@ -1,0 +1,14 @@
+defaults:
+  - backend@backend: causal
+  - _self_
+
+name: protgpt2
+params:
+  model_name: nferruz/ProtGPT2
+  prompt_text: "<|endoftext|>"
+  residues_per_token: 4.0
+  tokenizer_kwargs: {}
+  model_kwargs: {}
+  generation_kwargs:
+    do_sample: true
+    eos_token_id: 0

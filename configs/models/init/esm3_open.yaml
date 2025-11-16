@@ -1,6 +1,0 @@
-# Default initialization for public ESM3 weights.
-_target_: replm.config.ESM3InitConfig
-model_name: esm3-open
-torch_autocast: true
-include_final_norm: false
-exclude_special_tokens: null

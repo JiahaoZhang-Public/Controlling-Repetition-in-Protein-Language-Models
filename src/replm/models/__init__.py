@@ -48,8 +48,10 @@ def available_models() -> tuple[str, ...]:
 
 # Map short names to modules that (when imported) will register themselves.
 _AUTOLOAD_MODULES = {
-    "esm2": "replm.models.masked.esm2_backend",
     "esm3": "replm.models.masked.esm3_backend",
+    "hf_causal_lm": "replm.models.autoregressive.hf_causal_lm",
+    "protgpt2": "replm.models.autoregressive.hf_causal_lm",
+    "progen2_small": "replm.models.autoregressive.hf_causal_lm",
 }
 
 

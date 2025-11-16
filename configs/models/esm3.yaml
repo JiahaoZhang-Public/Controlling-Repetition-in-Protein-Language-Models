@@ -1,10 +1,28 @@
 defaults:
-  - init: esm3_open
-  - generation: esm3_default
+  - backend@backend: mlm
+  - _self_
 
 name: esm3
-backend:
-  task_type: mlm
-  device: ${runtime.device}
-  dtype: null
-  default_pooling: null
+
+params:
+  model_name: esm3  # placeholder if backend needs string id
+
+init:
+  _target_: replm.models.masked.esm3_config.ESM3InitConfig
+  model_name: esm3-open
+  torch_autocast: true
+  include_final_norm: false
+  exclude_special_tokens: null
+
+generation:
+  _target_: replm.models.masked.esm3_config.ESM3GenerationConfig
+  track: sequence
+  invalid_ids: []
+  schedule: cosine
+  strategy: random
+  num_steps: 20
+  temperature: 1.0
+  temperature_annealing: true
+  top_p: 1.0
+  condition_on_coordinates_only: true
+  only_compute_backbone_rmsd: false

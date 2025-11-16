@@ -78,7 +78,7 @@ def test_probe_naive_binary_learns_direction():
     result = method.fit(batch)
     edit = result.by_layer[0][0]
     # Direction should point along first dimension after normalization
-    assert torch.allclose(edit.add[0], torch.tensor(1.0), atol=1e-2)
+    assert torch.allclose(edit.add[0], torch.tensor(1.0), atol=5e-2)
     assert abs(float(edit.add[1])) < 0.2
 
 

@@ -27,10 +27,19 @@ The `dev` requirements install the testing/linting toolchain (pytest, ruff, mypy
 pytest
 ```
 
-Configurations are managed via Hydra; override modules by selecting configs under `configs/{datasets,models,methods}` when running CLI entry points.
+Configurations are managed via Hydra; override modules by selecting configs under `configs/{dataset,backend,models,methods}` when running CLI entry points.
 
 ### Adding a custom dataset
 
 1. Implement a class that inherits `replm.datasets.base.DatasetProvider` and overrides `iter_pos`, `iter_neg`, and optionally `build`.
 2. Create a new Hydra config under `configs/dataset/<name>.yaml` with `_target_` pointing to your class (and any kwargs).
 3. Launch experiments with `dataset=<name>` to select the provider.
+
+### Hugging Face causal language models
+
+The `hf_causal_lm` backend wraps `AutoModelForCausalLM`, so any Hugging Face protein LM can be used by adding a config under `configs/models/`. We ship presets for:
+
+- `models=protgpt2` → `nferruz/ProtGPT2` (residue lengths are converted to token counts assuming ~4 residues/token)
+- `models=progen2_small` → `hugohrban/progen2-small` (handles the extra `<|endoftext|>` token by requesting `L+1` tokens)
+
+These configs expose `backend_kwargs` so you can tweak tokenizer/model/generation kwargs and prompts without touching code.
