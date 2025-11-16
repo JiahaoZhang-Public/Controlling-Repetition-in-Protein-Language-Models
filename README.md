@@ -11,7 +11,7 @@ This repository provides the official implementation and reproducible experiment
 
 ## Environment Setup
 
-We recommend Python 3.10 or 3.11. Create an isolated environment (e.g., with `venv` or `conda`) and install runtime dependencies via `requirements/runtime.txt` (or `requirements/dev.txt` for contributors) before installing the package in editable mode:
+We recommend Python 3.10 . Create an isolated environment (e.g., with `venv` or `conda`) and install runtime dependencies via `requirements/runtime.txt` (or `requirements/dev.txt` for contributors) before installing the package in editable mode:
 
 ```bash
 python -m venv .venv
