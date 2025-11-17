@@ -6,6 +6,7 @@
 
 outputs/
 notebooks/
+scripts/job/
 
 #-------------Python gitignore template----------
 # Byte-compiled / optimized / DLL files

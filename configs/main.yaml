@@ -1,6 +1,6 @@
 defaults:
   - dataset: posneg
-  - models: progen2_small
+  - models: progen2_base
   - methods: contrastive_layer
   - _self_
 
