@@ -1,5 +1,4 @@
 defaults:
-  - backend@backend: causal
   - _self_
 
 name: progen2_base # 27 layers
@@ -16,3 +15,9 @@ params:
   generation_kwargs:
     do_sample: true
     eos_token_id: 0
+
+backend:
+  task_type: causal
+  device: ${runtime.device}
+  dtype: null
+  default_pooling: last_nonpad

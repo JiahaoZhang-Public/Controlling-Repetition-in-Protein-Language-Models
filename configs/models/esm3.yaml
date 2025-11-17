@@ -1,5 +1,4 @@
 defaults:
-  - backend@backend: mlm
   - _self_
 
 name: esm3
@@ -26,3 +25,9 @@ generation:
   top_p: 1.0
   condition_on_coordinates_only: true
   only_compute_backbone_rmsd: false
+
+backend:
+  task_type: mlm
+  device: ${runtime.device}
+  dtype: null
+  default_pooling: mean

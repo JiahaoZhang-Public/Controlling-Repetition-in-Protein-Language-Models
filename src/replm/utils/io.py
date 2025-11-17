@@ -1,19 +1,19 @@
-# repsurf/utils/io.py
+# replm/utils/io.py
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, List, Tuple
 
 
-def read_fasta(path: Path) -> List[Tuple[str, str]]:
+def read_fasta(path: Path) -> list[tuple[str, str]]:
     """
     Return (header, sequence) tuples from a FASTA file.
     - Header is the string after '>'
     - Sequence will have spaces/tabs removed
     """
-    recs: List[Tuple[str, str]] = []
+    recs: list[tuple[str, str]] = []
     header: str | None = None
-    seq_lines: List[str] = []
+    seq_lines: list[str] = []
     with path.open() as handle:
         for raw in handle:
             line = raw.rstrip("\n")
@@ -29,7 +29,7 @@ def read_fasta(path: Path) -> List[Tuple[str, str]]:
     return recs
 
 
-def write_fasta(seqs: Iterable[Tuple[str, str]], path: Path) -> None:
+def write_fasta(seqs: Iterable[tuple[str, str]], path: Path) -> None:
     """Write (header, seq) pairs to *path* in FASTA format. each row contains 60 characters."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w") as fout:

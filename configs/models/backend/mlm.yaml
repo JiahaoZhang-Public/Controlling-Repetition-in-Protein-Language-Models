@@ -1,4 +1,0 @@
-task_type: mlm
-device: ${runtime.device}
-dtype: null
-default_pooling: mean

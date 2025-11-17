@@ -1,4 +1,0 @@
-task_type: causal
-device: ${runtime.device}
-dtype: null
-default_pooling: last_nonpad
