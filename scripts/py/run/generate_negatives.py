@@ -28,6 +28,21 @@ from replm.config import BackendConfig
 from replm.models import get_model_class
 from replm.utils.io import write_fasta
 
+try:
+    from tqdm.auto import tqdm  # type: ignore
+except Exception:  # pragma: no cover - best-effort fallback if tqdm is missing
+    class tqdm:  # minimal no-op shim
+        def __init__(self, *_, **__):
+            pass
+
+        def update(self, *_: int) -> None:  # noqa: D401
+            """No-op update"""
+            return None
+
+        def close(self) -> None:  # noqa: D401
+            """No-op close"""
+            return None
+
 # Adjust this relative depth to your repo layout
 CONFIG_DIR = Path(__file__).resolve().parents[3] / "configs"
 
@@ -158,12 +173,17 @@ def main() -> None:
 
         print(f"[INFO] Generating {args.samples_per_model} sequences with {model_name}")
         records: list[tuple[str, str]] = []
-        for idx, length in enumerate(
-            _iter_lengths(rng, args.samples_per_model, args.min_len, args.max_len)
-        ):
-            seq = backend.generate_uncond(length=int(length))
-            header = f"{model_name}_{idx:05d}_len{length}"
-            records.append((header, seq))
+        pbar = tqdm(total=args.samples_per_model, desc=f"Generating[{model_name}]", unit="seq")
+        try:
+            for idx, length in enumerate(
+                _iter_lengths(rng, args.samples_per_model, args.min_len, args.max_len)
+            ):
+                seq = backend.generate_uncond(length=int(length))
+                header = f"{model_name}_{idx:05d}_len{length}"
+                records.append((header, seq))
+                pbar.update(1)
+        finally:
+            pbar.close()
 
         out_path = args.output_dir / f"{model_name}_neg.fasta"
         write_fasta(records, out_path)

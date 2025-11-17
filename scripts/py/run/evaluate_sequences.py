@@ -24,6 +24,12 @@ from replm.metrics.repetition import repetition_metrics, repetition_score
 from replm.metrics.structure import StructureProxyModel, get_structure_model
 from replm.utils.io import read_fasta
 
+try:
+    from tqdm.auto import tqdm  # type: ignore
+except Exception:  # pragma: no cover - best-effort fallback if tqdm is missing
+    def tqdm(x=None, **_):  # type: ignore
+        return x
+
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -55,6 +61,16 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Optional device override passed to the structure proxy.",
     )
     parser.add_argument(
+        "--structure-params",
+        type=str,
+        default=None,
+        help=(
+            "JSON object with overrides for the structure proxy generation params "
+            "(e.g., '{\"num_steps\": 20, \"temperature\": 0.9}'). "
+            "Alternatively, provide a path to a JSON file."
+        ),
+    )
+    parser.add_argument(
         "--skip-structure",
         action="store_true",
         help="Skip structure evaluation (ptm/plddt columns will be NaN).",
@@ -67,6 +83,17 @@ def _instantiate_structure_proxy(name: str, device: str | None) -> StructureProx
     if device is not None:
         cfg["device"] = device
     return get_structure_model(name, **cfg)
+
+
+def _parse_structure_params(param_arg: str | None) -> dict[str, Any]:
+    if not param_arg:
+        return {}
+    # If the argument is a path to a file, read JSON content from it
+    path = Path(param_arg)
+    if path.exists() and path.is_file():
+        return json.loads(path.read_text())
+    # Otherwise, parse as a JSON string
+    return json.loads(param_arg)
 
 
 def _coerce_plddt(val: float | None) -> float:
@@ -102,11 +129,13 @@ def main() -> None:
                 "Install the required dependencies or re-run with --skip-structure."
             ) from exc
 
+    structure_overrides: dict[str, Any] = _parse_structure_params(args.structure_params)
+
     rows: list[dict[str, Any]] = []
     rep_scores: list[float] = []
     utility_scores: list[float] = []
 
-    for header, sequence in seqs:
+    for header, sequence in tqdm(seqs, desc="Evaluating sequences", unit="seq"):
         rep = repetition_metrics(sequence)
         rep_score = repetition_score(sequence)
         length = len(sequence)
@@ -119,7 +148,7 @@ def main() -> None:
         ptm = float("nan")
         plddt = float("nan")
         if structure_proxy is not None:
-            result = structure_proxy.evaluate(sequence)
+            result = structure_proxy.evaluate(sequence, **structure_overrides)
             metrics = result.metrics
             ptm_val = metrics.get("ptm", float("nan"))
             ptm = float(ptm_val) if ptm_val is not None else float("nan")
