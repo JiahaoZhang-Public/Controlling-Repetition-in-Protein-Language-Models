@@ -1,6 +1,6 @@
 defaults:
   - dataset: posneg
-  - models: protgpt2
+  - models: progen2_small
   - methods: contrastive_layer
   - _self_
 
@@ -28,11 +28,11 @@ steering:
 
 generation:
   uncond:
-    n: 10 # {uncond_n}
+    n: 1 # {uncond_n}
     length_min: 50 # {uncond_length_min}
     length_max: 512 # {uncond_length_max}
     overrides: {}
   prefix:
-    n: 10 # {prefix_n}
+    n: 1 # {prefix_n}
     prefix_frac: 0.1 # 10% of the source sequence
     overrides: {}

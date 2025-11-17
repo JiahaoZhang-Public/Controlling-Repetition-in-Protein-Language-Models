@@ -2,10 +2,10 @@ defaults:
   - backend@backend: causal
   - _self_
 
-name: progen2_small # 12 layers
+name: progen2_base # 27 layers
 
 params:
-  model_name: hugohrban/progen2-small
+  model_name: hugohrban/progen2-base
   prompt_text: "<|endoftext|>"
   length_offset: 1
   tokenizer_kwargs:

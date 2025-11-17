@@ -3,7 +3,7 @@
 _target_: replm.datasets.posneg_provider.PosNegProvider
 
 # Seed used for shuffling and reproducibility.
-seed: 42
+seed: ${runtime.seed}
 
 pos_fasta: data/pos/uniprot.fa
 pos_metrics: data/pos/uniprot.metrics.csv
@@ -28,4 +28,4 @@ filter:
 opt:
   method: pareto        # choose from: pareto | composite | random | simple
   target_per_side: 1000
-  random_seed: 42
+  random_seed: ${runtime.seed}

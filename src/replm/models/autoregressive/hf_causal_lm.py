@@ -213,3 +213,23 @@ class Progen2SmallBackend(HFCausalLMBackend):
 
     def _translate_length(self, target_len: int) -> int:
         return max(1, int(target_len) + self.length_offset)
+    
+@register_model("progen2_base")
+class Progen2BaseBackend(HFCausalLMBackend):
+    """
+    ProGen2-base backend that compensates for the extra <|endoftext|> token.
+    The requested length L is achieved by generating `L + offset` tokens.
+    """
+
+    def __init__(
+        self,
+        *,
+        backend_cfg: BackendConfig,
+        length_offset: int = 1,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(backend_cfg=backend_cfg, **kwargs)
+        self.length_offset = int(length_offset)
+
+    def _translate_length(self, target_len: int) -> int:
+        return max(1, int(target_len) + self.length_offset)
