@@ -1,5 +1,5 @@
 _target_: replm.steer.methods.contrastive_layer.ContrastiveLayer
-layer: 1
+layer: ${steering.layer}
 normalize: false
 var_scale: false
 alpha: 1.0

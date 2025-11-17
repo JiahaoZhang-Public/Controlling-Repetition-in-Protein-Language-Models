@@ -216,24 +216,26 @@ def main(cfg: DictConfig) -> None:
 
     # ----- model backend -----
     backend = _instantiate_backend(cfg.models)
-    backend.load()
-    layers = list(cfg.model.layers)
-    batch_size = int(cfg.model.activation.batch_size)
-    logger.info("Extracting activations for layers=%s", layers)
+    backend.load()  
+    layers: torch.nn.ModuleList = backend.layers
+    layers_idx = list(range(len(layers)))
+    batch_size = int(cfg.activation.batch_size)
+    logger.info("Model has %d layers", len(layers))
+    logger.info("Extracting activations for layers=%s", layers_idx)
 
-    pos_hidden = backend.activations([rec.sequence for rec in pos_train], layers=layers, batch_size=batch_size) # noqa: E501
-    neg_hidden = backend.activations([rec.sequence for rec in neg_train], layers=layers, batch_size=batch_size) # noqa: E501
+    pos_hidden = backend.activations([rec.sequence for rec in pos_train], layers=layers_idx, batch_size=batch_size) # noqa: E501
+    neg_hidden = backend.activations([rec.sequence for rec in neg_train], layers=layers_idx, batch_size=batch_size) # noqa: E501
     by_layer = {}
-    pos_dict = _activations_to_by_layer(pos_hidden, layers)
-    neg_dict = _activations_to_by_layer(neg_hidden, layers)
-    for layer in layers:
+    pos_dict = _activations_to_by_layer(pos_hidden, layers_idx)
+    neg_dict = _activations_to_by_layer(neg_hidden, layers_idx)
+    for layer in layers_idx:
         by_layer[layer] = torch.cat([pos_dict[layer], neg_dict[layer]], dim=0)
 
     if bool(cfg.io.save_activations):
         np.savez(
             run_dir / "activations.npz",
-            **{f"pos_layer_{layer}": pos_dict[layer].numpy() for layer in layers},
-            **{f"neg_layer_{layer}": neg_dict[layer].numpy() for layer in layers},
+            **{f"pos_layer_{layer}": pos_dict[layer].numpy() for layer in layers_idx},
+            **{f"neg_layer_{layer}": neg_dict[layer].numpy() for layer in layers_idx},
         )
 
     pos_idx = torch.arange(0, len(pos_train), dtype=torch.long)
@@ -257,7 +259,6 @@ def main(cfg: DictConfig) -> None:
     save_steer_result(result, run_dir / "steer_result.json")
 
     # ----- generation -----
-    layer_path = tuple(cfg.model.layer_attr_path)
     uncond_cfg = OmegaConf.to_container(cfg.generation.uncond.overrides, resolve=True)
     prefix_cfg = OmegaConf.to_container(cfg.generation.prefix.overrides, resolve=True)
 
@@ -265,7 +266,7 @@ def main(cfg: DictConfig) -> None:
 
     def _steer_context():
         if edits:
-            return Steerer(backend.model, specs=edits, layer_attr_path=layer_path)
+            return Steerer(backend.model, specs=edits, layer_attr_path=backend.steering_layer_attr_path)
         return nullcontext()
 
     def _generate_uncond() -> list[SequenceRecord]:

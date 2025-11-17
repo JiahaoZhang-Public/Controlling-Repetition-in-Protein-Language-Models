@@ -16,22 +16,23 @@ runtime:
   device: cpu # {device}
 
 split:
-  train: 1 # {train}
-  test: 1 # {test}
+  train: 10 # {train}
+  test: 10 # {test}
 
-model:
-  layers: [1] # {layers}
-  activation:
+activation:
     batch_size: 1 # {batch_size}
-  layer_attr_path: ["transformer", "h"] # {layer_attr_path}
+  
+steering:
+  layer: 0 # {layer} which layer you want to steer, works for method: contrastive_layer , probe_layer
+  
 
 generation:
   uncond:
     n: 10 # {uncond_n}
-    length_min: 64 # {uncond_length_min}
-    length_max: 64 # {uncond_length_max}
+    length_min: 50 # {uncond_length_min}
+    length_max: 512 # {uncond_length_max}
     overrides: {}
   prefix:
-    n: 1 # {prefix_n}
-    prefix_frac: 0.2
+    n: 10 # {prefix_n}
+    prefix_frac: 0.1 # 10% of the source sequence
     overrides: {}

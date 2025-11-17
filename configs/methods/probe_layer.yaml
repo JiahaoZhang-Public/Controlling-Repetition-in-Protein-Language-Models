@@ -1,5 +1,5 @@
 _target_: replm.steer.methods.probe.ProbeNaiveBinary
-layer: 0
+layer: ${steering.layer}
 normalize: true
 alpha: 1.0
 lr: 0.01

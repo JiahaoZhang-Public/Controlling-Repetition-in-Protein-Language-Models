@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+from torch import nn
 
 try:
     import torch
@@ -47,7 +48,7 @@ class ModelBackend(ABC):
             self.cfg = backend_cfg
         self.model: Any = None
         self.tokenizer: Any = None
-
+        
     # ----- lifecycle -----
     @abstractmethod
     def load(self) -> None:
@@ -161,3 +162,51 @@ class ModelBackend(ABC):
     @abstractmethod
     def generate_with_prefix(self, target_len: int, prefix: str, **gen_cfg: Any) -> str:
         """Return a sequence up to `target_len`, conditioned on `prefix`."""
+
+    # ------------------------------------------------------------------
+    # Steering helpers
+    # ------------------------------------------------------------------
+    @property
+    def steering_layer_attr_path(self) -> tuple[str, ...] | None:
+        candidates: list[tuple[str, ...]] = [
+            ("transformer", "h"),  # GPT-2 style
+            ("transformer", "blocks"),
+            ("model", "layers"),  # OPT / GPT-J clones
+            ("model", "decoder", "layers"),
+            ("gpt_neox", "layers"),
+            ("backbone", "layers"),
+            ("language_model", "transformer", "layers"),
+            ("layers",),
+            ("blocks",),
+        ]
+
+        for path in candidates:
+            obj: nn.Module | None = self.model
+            for attr in path:
+                if not hasattr(obj, attr):
+                    obj = None
+                    break
+                obj = getattr(obj, attr)
+            if obj is not None and isinstance(obj, nn.ModuleList):
+                return path
+
+        return None
+    
+    @property
+    def layers(self) -> nn.ModuleList:
+        if self.steering_layer_attr_path is None:
+            raise RuntimeError("Call load() before accessing layers.")
+        model_blocks = self._resolve_blocks(self.steering_layer_attr_path)
+        return model_blocks
+    
+    def _resolve_blocks(self, layer_attr_path: tuple[str, ...]) -> nn.ModuleList:
+        obj: nn.Module = self.model
+        for attr in layer_attr_path:
+            if not hasattr(obj, attr):
+                chain = ".".join(layer_attr_path)
+                raise AttributeError(f"Model is missing attribute '{attr}' while resolving {chain}")
+            obj = getattr(obj, attr)
+        if not isinstance(obj, nn.ModuleList):
+            chain = ".".join(layer_attr_path)
+            raise TypeError(f"Resolved object at {chain} is not an nn.ModuleList.")
+        return obj

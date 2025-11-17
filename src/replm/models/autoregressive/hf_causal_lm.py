@@ -50,6 +50,7 @@ class HFCausalLMBackend(ModelBackend):
 
         self.tokenizer = None
         self.model = None
+        self._layer_attr_path: tuple[str, ...] | None = None
 
     def load(self) -> HFCausalLMBackend:
         try:
@@ -169,7 +170,6 @@ class HFCausalLMBackend(ModelBackend):
         if len(prefix or "") > target_len:
             raise ValueError("Prefix length exceeds target length.")
         return self._generate(prompt_ids, target_len, gen_cfg)
-
 
 @register_model("protgpt2")
 class ProtGPT2Backend(HFCausalLMBackend):
