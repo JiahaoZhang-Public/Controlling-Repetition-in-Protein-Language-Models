@@ -1,5 +1,5 @@
 defaults:
-  - dataset: toy
+  - dataset: posneg
   - models: protgpt2
   - methods: control
   - _self_

@@ -633,7 +633,7 @@ class PosNegDataset:
             g: Dict[Tuple[int, int], List[dict]] = {}
             for r in items:
                 lb = _bucketize(r["length"], self.filter_cfg.length_bins)
-                pb = _bucketize(r["plddt"], self.filter_cfg.pldddt_bins)
+                pb = _bucketize(r["plddt"], self.filter_cfg.plddt_bins)
                 if lb is None or pb is None:
                     continue
                 g.setdefault((lb, pb), []).append(r)
