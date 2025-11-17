@@ -12,6 +12,7 @@ from .structure import (
     available_structure_models,
     get_structure_model,
     register_structure_model,
+    structure_utility_score,
 )
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     "pairwise_percent_identity",
     "repetition_score",
     "repetition_metrics",
+    "structure_utility_score",
 ]

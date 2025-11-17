@@ -1,7 +1,7 @@
 defaults:
   - dataset: posneg
   - models: protgpt2
-  - methods: control
+  - methods: contrastive_layer
   - _self_
 
 exp:
@@ -23,7 +23,7 @@ model:
   layers: [1] # {layers}
   activation:
     batch_size: 1 # {batch_size}
-  layer_attr_path: ["transformer", "blocks"] # {layer_attr_path}
+  layer_attr_path: ["transformer", "h"] # {layer_attr_path}
 
 generation:
   uncond:

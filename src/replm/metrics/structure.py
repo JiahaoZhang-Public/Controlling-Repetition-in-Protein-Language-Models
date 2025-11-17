@@ -224,3 +224,17 @@ class Esm3StructureProxy(StructureProxyModel):
         logger.info("Loading ESM3 model '%s' on device '%s'.", model_name, resolved_device)
         client = ESM3.from_pretrained(model_name)
         return client.to(resolved_device)
+    
+def structure_utility_score(plddt: float, ptm: float) -> float:
+    """Compute the structure utility score.
+    
+    Args:
+        plddt: The pLDDT score.
+        ptm: The pTM score.
+        
+    Returns:
+        The structure utility score.
+    """
+    # plddt: 0-1/ 0-100, will be converted to 0-1
+    plddt = plddt / 100.0 if plddt > 1.0 else plddt
+    return (plddt + ptm) / 2.0

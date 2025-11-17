@@ -5,6 +5,7 @@
 .ruff_cache/
 
 outputs/
+notebooks/
 
 #-------------Python gitignore template----------
 # Byte-compiled / optimized / DLL files

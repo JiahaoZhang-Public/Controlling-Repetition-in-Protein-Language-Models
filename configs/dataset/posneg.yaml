@@ -2,7 +2,7 @@
 
 _target_: replm.datasets.posneg_provider.PosNegProvider
 
-# 随机种子（用来打乱、可复现）
+# Seed used for shuffling and reproducibility.
 seed: 42
 
 pos_fasta: data/pos/uniprot.fa
@@ -11,6 +11,12 @@ pos_metrics: data/pos/uniprot.metrics.csv
 neg_fasta: data/neg/esm3_raw_neg.sequences.fasta
 neg_metrics: data/neg/esm3_raw_neg.metrics.csv
 
+# Map dataset-specific column names to the canonical repetition/utility fields.
+metrics:
+  repetition: ["entropy_norm"] # key for repetition metric
+  utility: ["ptm"] # key for utility metric
+  entropy: ["entropy_norm", "H_norm"] # this is used to filter the dataset
+  plddt: ["plddt_mean_0_100", "plddt", "plddt_mean_01"] # this is used to filter the dataset
 
 filter:
   ent_hi: 0.90
@@ -20,6 +26,6 @@ filter:
   max_len: 1024
 
 opt:
-  method: pareto        # 或 'composite' / 'random' / 'simple'
-  target_per_side: 500  
+  method: pareto        # choose from: pareto | composite | random | simple
+  target_per_side: 1000
   random_seed: 42
