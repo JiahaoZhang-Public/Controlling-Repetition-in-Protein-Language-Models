@@ -21,7 +21,7 @@ import numpy as np
 
 from replm.metrics.diversity import pairwise_percent_identity
 from replm.metrics.repetition import repetition_metrics, repetition_score
-from replm.metrics.structure import StructureProxyModel, get_structure_model
+from replm.metrics.structure import StructureProxyModel, get_structure_model, structure_utility_score
 from replm.utils.io import read_fasta
 
 try:
@@ -175,8 +175,8 @@ def main() -> None:
             }
         )
         rep_scores.append(rep_score)
-        if math.isfinite(ptm):
-            utility_scores.append(ptm)
+        utility_scores.append(structure_utility_score(plddt, ptm))
+            
 
     with out_csv.open("w", newline="") as fout:
         writer = csv.DictWriter(

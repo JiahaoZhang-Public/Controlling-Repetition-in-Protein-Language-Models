@@ -8,6 +8,8 @@ outputs/
 notebooks/
 scripts/job/
 
+.DS_Store
+
 #-------------Python gitignore template----------
 # Byte-compiled / optimized / DLL files
 __pycache__/
