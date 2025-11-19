@@ -1,0 +1,18 @@
+# configs/models/esm2.yaml
+defaults:
+  - _self_
+  
+name: esm2
+
+backend:
+  task_type: mlm        
+  device: ${runtime.device}
+  dtype: float16         
+  default_pooling: last_nonpad
+
+params:
+  init_cfg:
+    model_name: facebook/esm2_t33_650M_UR50D
+    torch_autocast: true
+    include_final_norm: false
+    exclude_special_tokens: null
