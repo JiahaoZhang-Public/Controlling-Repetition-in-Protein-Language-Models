@@ -121,7 +121,7 @@ def compute_utility_score_from_metrics(metrics: dict[str, float] | None) -> floa
     if not metrics:
         return float("nan")
     values = [
-        metrics.get("plddt"),
+        metrics.get("plddt")/100.0,
         metrics.get("ptm"),
     ]
     valid_values = [value for value in values if value is not None and value == value]
