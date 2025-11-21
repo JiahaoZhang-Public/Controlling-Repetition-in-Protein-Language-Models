@@ -8,6 +8,8 @@ outputs/
 notebooks/
 scripts/job/
 logs/
+results/
+docs/
 
 .DS_Store
 

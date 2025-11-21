@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import re
 import statistics
 import sys
@@ -18,9 +19,9 @@ MODEL_CONFIG = {
         "label": "ESM3",
         "method_order": ["temperature", "top_p", "entropy"],
         "methods": {
-            "temperature": {"label": "Temperature", "parameter": "T=1.3"},
-            "top_p": {"label": "Top-p", "parameter": "p=0.95"},
-            "entropy": {"label": "Entropy Sampling", "parameter": "-"},
+            "temperature": {"label": "Temperature + UCCS", "parameter": "T=1.3"},
+            "top_p": {"label": "Top-p + UCCS", "parameter": "p=0.95"},
+            "entropy": {"label": "Entropy Sampling + UCCS", "parameter": "-"},
         },
     },
     "protgpt2": {
@@ -32,10 +33,10 @@ MODEL_CONFIG = {
             "no_repeat_ngram",
         ],
         "methods": {
-            "temperature": {"label": "Temperature", "parameter": "T=1.3"},
-            "top_p": {"label": "Top-p", "parameter": "p=0.98"},
-            "repetition_penalty": {"label": "Repetition Penalty", "parameter": "1.2"},
-            "no_repeat_ngram": {"label": "No Repeat N-gram", "parameter": "N=3"},
+            "temperature": {"label": "Temperature + UCCS", "parameter": "T=1.3"},
+            "top_p": {"label": "Top-p + UCCS", "parameter": "p=0.98"},
+            "repetition_penalty": {"label": "Repetition Penalty + UCCS", "parameter": "1.2"},
+            "no_repeat_ngram": {"label": "No Repeat N-gram + UCCS", "parameter": "N=3"},
         },
     },
 }
@@ -59,7 +60,7 @@ METRIC_FIELDS = [
 SUMMARY_FIELDS = [
     ("repetition_score", "Repetition Score"),
     ("utility_score", "Biological Utility"),
-    ("diversity_pid", "Diversity PID"),
+    ("diversity_pid", "Diversity (PID)"),
 ]
 
 CONDITION_LABELS = {"unconditional": "Unconditional", "conditional": "Conditional"}
@@ -116,18 +117,25 @@ def read_summary_file(path: Path) -> dict[str, float]:
     return {field: float(data[field]) for field, _ in SUMMARY_FIELDS if field in data}
 
 
+def structure_utility_score(plddt: float, ptm: float) -> float:
+    """Match src.replm.metrics.structure.structure_utility_score without imports."""
+
+    plddt = plddt / 100.0 if plddt > 1.0 else plddt
+    return (plddt + ptm) / 2.0
+
+
 def compute_utility_score_from_metrics(metrics: dict[str, float] | None) -> float:
-    """Return the mean of pLDDT and pTM for a single run."""
+    """Compute biological utility via structure_utility_score."""
+
     if not metrics:
         return float("nan")
-    values = [
-        metrics.get("plddt")/100.0,
-        metrics.get("ptm"),
-    ]
-    valid_values = [value for value in values if value is not None and value == value]
-    if not valid_values:
+    plddt = metrics.get("plddt")
+    ptm = metrics.get("ptm")
+    if plddt is None or ptm is None:
         return float("nan")
-    return statistics.fmean(valid_values)
+    if not (math.isfinite(plddt) and math.isfinite(ptm)):
+        return float("nan")
+    return structure_utility_score(plddt, ptm)
 
 
 def aggregate_store(
