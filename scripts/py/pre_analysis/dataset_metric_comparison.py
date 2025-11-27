@@ -24,6 +24,8 @@ METRICS = {
     "Distinct-2": "distinct2",
     "Distinct-3": "distinct3",
     "Rhpoly": "H_poly_k4",
+    "pLDDT": "plddt",
+    "pTM": "ptm",
 }
 
 TAIL_QUANTILE = 0.95
