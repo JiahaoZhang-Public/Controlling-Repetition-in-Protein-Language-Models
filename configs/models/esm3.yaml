@@ -28,6 +28,6 @@ generation:
 
 backend:
   task_type: mlm
-  device: ${runtime.device}
+  device: cuda
   dtype: null
   default_pooling: mean
