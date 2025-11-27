@@ -6,7 +6,7 @@ import argparse
 import csv
 from pathlib import Path
 
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # pyright: ignore[reportMissingImports]
 import numpy as np
 from scipy.stats import ks_2samp, kurtosis, wasserstein_distance
 

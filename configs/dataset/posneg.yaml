@@ -15,8 +15,8 @@ neg_metrics: data/neg/esm3_raw_neg.metrics.csv
 metrics:
   repetition: ["entropy_norm"] # key for repetition metric
   utility: ["ptm"] # key for utility metric
-  entropy: ["entropy_norm", "H_norm"] # this is used to filter the dataset
-  plddt: ["plddt_mean_0_100", "plddt", "plddt_mean_01"] # this is used to filter the dataset
+  entropy: ["entropy_norm"] # this is used to filter the dataset
+  plddt: ["plddt"] # this is used to filter the dataset
 
 filter:
   ent_hi: 0.90

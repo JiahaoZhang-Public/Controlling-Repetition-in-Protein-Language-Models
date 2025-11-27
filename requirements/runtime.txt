@@ -3,5 +3,6 @@ numpy
 hydra-core
 transformers
 
+matplotlib
 httpx # for esm3
 esm # for esm3
