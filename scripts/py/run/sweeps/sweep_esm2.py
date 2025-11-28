@@ -67,89 +67,105 @@ def build_methods() -> list[tuple[str, list[str]]]:
     methods: list[tuple[str, list[str]]] = []
 
     # ----- Control baseline -----
-    methods.append((
-        "control",
-        [
-            "methods=control",
-        ],
-    ))
+    methods.append(
+        (
+            "control",
+            [
+                "methods=control",
+            ],
+        )
+    )
 
     # ----- Temperature sweep -----
     for temp in [0.7, 1.0, 1.3]:
         label = _float_label(temp)
-        methods.append((
-            f"temperature_{label}",
-            [
-                "methods=control",
-                f"generation.uncond.overrides.temperature={temp}",
-                f"generation.prefix.overrides.temperature={temp}",
-            ],
-        ))
+        methods.append(
+            (
+                f"temperature_{label}",
+                [
+                    "methods=control",
+                    f"generation.uncond.overrides.temperature={temp}",
+                    f"generation.prefix.overrides.temperature={temp}",
+                ],
+            )
+        )
 
     # ----- Top-p sweep -----
     for top_p in [0.80, 0.85, 0.90, 0.95, 0.98, 1.00]:
         label = _float_label(top_p, digits=2)
-        methods.append((
-            f"top_p_{label}",
-            [
-                "methods=control",
-                f"generation.uncond.overrides.top_p={top_p}",
-                f"generation.prefix.overrides.top_p={top_p}",
-            ],
-        ))
+        methods.append(
+            (
+                f"top_p_{label}",
+                [
+                    "methods=control",
+                    f"generation.uncond.overrides.top_p={top_p}",
+                    f"generation.prefix.overrides.top_p={top_p}",
+                ],
+            )
+        )
 
     # ----- No repeat n-gram -----
     for ngram in [2, 3, 4]:
-        methods.append((
-            f"no_repeat_ngram_{ngram}",
-            [
-                "methods=control",
-                f"generation.uncond.overrides.no_repeat_ngram_size={ngram}",
-                f"generation.prefix.overrides.no_repeat_ngram_size={ngram}",
-            ],
-        ))
+        methods.append(
+            (
+                f"no_repeat_ngram_{ngram}",
+                [
+                    "methods=control",
+                    f"generation.uncond.overrides.no_repeat_ngram_size={ngram}",
+                    f"generation.prefix.overrides.no_repeat_ngram_size={ngram}",
+                ],
+            )
+        )
 
     # ----- Repetition penalty -----
     for penalty in [1.1, 1.2, 1.3]:
         label = _float_label(penalty, digits=2)
-        methods.append((
-            f"repetition_penalty_{label}",
-            [
-                "methods=control",
-                f"generation.uncond.overrides.repetition_penalty={penalty}",
-                f"generation.prefix.overrides.repetition_penalty={penalty}",
-            ],
-        ))
+        methods.append(
+            (
+                f"repetition_penalty_{label}",
+                [
+                    "methods=control",
+                    f"generation.uncond.overrides.repetition_penalty={penalty}",
+                    f"generation.prefix.overrides.repetition_penalty={penalty}",
+                ],
+            )
+        )
 
     # ----- Neuron deactivation -----
     for topk in [8, 64, 256, 1024, 4096]:
-        methods.append((
-            f"neuron_deactivation_{topk}",
-            [
-                "methods=neuron_topk",
-                f"methods.topk={topk}",
-            ],
-        ))
+        methods.append(
+            (
+                f"neuron_deactivation_{topk}",
+                [
+                    "methods=neuron_topk",
+                    f"methods.topk={topk}",
+                ],
+            )
+        )
 
     # ----- Probe steering over 33 layers -----
     for layer in range(33):
-        methods.append((
-            f"probe_layer_{layer:02d}",
-            [
-                "methods=probe_layer",
-                f"methods.layer={layer}",
-            ],
-        ))
+        methods.append(
+            (
+                f"probe_layer_{layer:02d}",
+                [
+                    "methods=probe_layer",
+                    f"methods.layer={layer}",
+                ],
+            )
+        )
 
     # ----- UUCS (contrastive layer) over 33 layers -----
     for layer in range(33):
-        methods.append((
-            f"uucs_layer_{layer:02d}",
-            [
-                "methods=contrastive_layer",
-                f"methods.layer={layer}",
-            ],
-        ))
+        methods.append(
+            (
+                f"uucs_layer_{layer:02d}",
+                [
+                    "methods=contrastive_layer",
+                    f"methods.layer={layer}",
+                ],
+            )
+        )
 
     return methods
 
@@ -180,10 +196,12 @@ def build_experiments() -> list[dict[str, object]]:
                     + _dataset_overrides(dataset)
                     + method_overrides
                 )
-                experiments.append({
-                    "id": exp_id,
-                    "overrides": _normalize_overrides(overrides),
-                })
+                experiments.append(
+                    {
+                        "id": exp_id,
+                        "overrides": _normalize_overrides(overrides),
+                    }
+                )
     return experiments
 
 

@@ -74,7 +74,7 @@ def test_probe_naive_binary_learns_direction():
         positive_idx=torch.tensor([0, 1], dtype=torch.long),
         negative_idx=torch.tensor([2, 3], dtype=torch.long),
     )
-    method = ProbeNaiveBinary(layer=0, normalize=True, alpha=1.0, epochs=100, lr=0.05)
+    method = ProbeNaiveBinary(layer=0, normalize=True, alpha=1.0, epochs=200, lr=0.05)
     result = method.fit(batch)
     edit = result.by_layer[0][0]
     # Direction should point along first dimension after normalization

@@ -31,6 +31,7 @@ from replm.utils.io import write_fasta
 try:
     from tqdm.auto import tqdm  # type: ignore
 except Exception:  # pragma: no cover - best-effort fallback if tqdm is missing
+
     class tqdm:  # minimal no-op shim
         def __init__(self, *_, **__):
             pass
@@ -42,6 +43,7 @@ except Exception:  # pragma: no cover - best-effort fallback if tqdm is missing
         def close(self) -> None:  # noqa: D401
             """No-op close"""
             return None
+
 
 # Adjust this relative depth to your repo layout
 CONFIG_DIR = Path(__file__).resolve().parents[3] / "configs"
@@ -108,7 +110,7 @@ def _instantiate_backend(model_cfg: DictConfig, model_name: str):
     backend_node = OmegaConf.select(model_cfg, "backend") or OmegaConf.select(model_cfg, "models.backend")
     if backend_node is None:
         raise KeyError(
-            f"Config for model '{OmegaConf.select(model_cfg, 'name') or model_name}' is missing a backend block." # noqa: E501
+            f"Config for model '{OmegaConf.select(model_cfg, 'name') or model_name}' is missing a backend block."  # noqa: E501
         )
     backend_raw = OmegaConf.to_container(backend_node, resolve=True)
     backend_cfg = BackendConfig(**backend_raw)
@@ -127,9 +129,7 @@ def _instantiate_backend(model_cfg: DictConfig, model_name: str):
 
     # Resolve class to use, preferring config's 'name' if available
     resolved_name = (
-        OmegaConf.select(model_cfg, "name")
-        or OmegaConf.select(model_cfg, "models.name")
-        or model_name
+        OmegaConf.select(model_cfg, "name") or OmegaConf.select(model_cfg, "models.name") or model_name
     )
     backend_cls = get_model_class(resolved_name)
 

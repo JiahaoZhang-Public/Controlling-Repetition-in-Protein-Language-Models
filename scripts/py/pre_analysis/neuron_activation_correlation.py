@@ -15,8 +15,8 @@ import argparse
 import csv
 import inspect
 import json
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Iterable, Sequence
 
 import matplotlib.pyplot as plt  # pyright: ignore[reportMissingImports]
 import numpy as np
@@ -66,10 +66,7 @@ def parse_args() -> argparse.Namespace:
         "--model-config",
         type=Path,
         default=Path("configs/models/esm3.yaml"),
-        help=(
-            "Model config YAML used to instantiate the backend "
-            "(e.g., configs/models/esm2.yaml)."
-        ),
+        help=("Model config YAML used to instantiate the backend " "(e.g., configs/models/esm2.yaml)."),
     )
     parser.add_argument(
         "--output-dir",
@@ -122,9 +119,7 @@ def parse_args() -> argparse.Namespace:
         help="Minimum pLDDT filter for both sides (85.0 by default to mirror dataset cfg).",
     )
     parser.add_argument("--min-len", type=int, default=50, help="Minimum sequence length to keep.")
-    parser.add_argument(
-        "--max-len", type=int, default=1024, help="Maximum sequence length to keep."
-    )
+    parser.add_argument("--max-len", type=int, default=1024, help="Maximum sequence length to keep.")
     parser.add_argument(
         "--max-per-side",
         type=int,
@@ -345,12 +340,12 @@ def _compute_correlations(hidden: np.ndarray, scores: np.ndarray) -> np.ndarray:
     centered_hidden = flat_hidden - flat_hidden.mean(axis=0)
 
     centered_scores = scores.astype(np.float64) - float(scores.mean())
-    score_power = float(np.sum(centered_scores ** 2))
+    score_power = float(np.sum(centered_scores**2))
     if score_power <= 0:
         raise ValueError("Scores have zero variance; correlation is undefined.")
 
     numerator = np.sum(centered_hidden * centered_scores[:, None], axis=0)
-    denom = np.sqrt(np.sum(centered_hidden ** 2, axis=0) * score_power)
+    denom = np.sqrt(np.sum(centered_hidden**2, axis=0) * score_power)
     denom = np.where(denom == 0.0, np.nan, denom)
     corr = numerator / denom
     return corr.reshape(hidden.shape[1], hidden.shape[2])

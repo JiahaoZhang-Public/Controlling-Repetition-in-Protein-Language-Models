@@ -50,9 +50,7 @@ METHOD_ORDER = [
     "uccs_layer",
 ]
 
-RUN_PATTERN = re.compile(
-    r"seed_(?P<seed>\d+)_method_(?P<method>.+)_dataset_(?P<dataset>.+)$"
-)
+RUN_PATTERN = re.compile(r"seed_(?P<seed>\d+)_method_(?P<method>.+)_dataset_(?P<dataset>.+)$")
 
 
 def parse_args() -> argparse.Namespace:
@@ -162,10 +160,7 @@ def read_metrics_file(path: Path) -> dict[str, float]:
                     values[field].append(float(row[field]))
                 except ValueError:
                     continue
-    return {
-        field: (sum(vals) / len(vals) if vals else float("nan"))
-        for field, vals in values.items()
-    }
+    return {field: (sum(vals) / len(vals) if vals else float("nan")) for field, vals in values.items()}
 
 
 def read_summary_file(path: Path) -> dict[str, float]:
@@ -242,9 +237,7 @@ def aggregate_summary(
         for dataset, method_map in dataset_map.items():
             aggregated[condition][dataset] = {}
             for method, runs in method_map.items():
-                aggregated[condition][dataset][method] = compute_stats(
-                    runs, SUMMARY_FIELDS
-                )
+                aggregated[condition][dataset][method] = compute_stats(runs, SUMMARY_FIELDS)
     return aggregated
 
 
@@ -348,14 +341,8 @@ def build_rows(
             best_info = best_map.get(condition, {}).get(dataset, {}).get(method_base)
             if not best_info:
                 continue
-            method_label = METHOD_CONFIG.get(method_base, {}).get(
-                "label", method_base
-            )
-            stats = (
-                aggregated.get(condition, {})
-                .get(dataset, {})
-                .get(best_info["method_name"])
-            )
+            method_label = METHOD_CONFIG.get(method_base, {}).get("label", method_base)
+            stats = aggregated.get(condition, {}).get(dataset, {}).get(best_info["method_name"])
             rows.append(
                 [
                     dataset_label,

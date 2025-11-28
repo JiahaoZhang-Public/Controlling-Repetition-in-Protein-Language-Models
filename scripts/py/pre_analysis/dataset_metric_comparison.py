@@ -85,9 +85,7 @@ def load_metric_values() -> dict[str, dict[str, np.ndarray]]:
 
             missing = [col for col in METRICS.values() if col not in reader.fieldnames]
             if missing:
-                raise ValueError(
-                    f"{dataset} CSV missing required columns: {', '.join(missing)}"
-                )
+                raise ValueError(f"{dataset} CSV missing required columns: {', '.join(missing)}")
 
             collected: dict[str, list[float]] = {metric: [] for metric in METRICS}
             for row in reader:
@@ -106,9 +104,7 @@ def load_metric_values() -> dict[str, dict[str, np.ndarray]]:
         for metric_name, values in collected.items():
             array = np.asarray(values, dtype=float)
             if array.size == 0:
-                raise ValueError(
-                    f"{dataset} does not contain non-null values for {METRICS[metric_name]}."
-                )
+                raise ValueError(f"{dataset} does not contain non-null values for {METRICS[metric_name]}.")
             dataset_metrics[dataset][metric_name] = array
 
     return dataset_metrics
@@ -190,9 +186,7 @@ def compute_statistics(
                 matrices[metric_name]["excess_kurtosis_diff"][i, j] = kurtosis_diff
                 matrices[metric_name]["q95_diff"][i, j] = q95_diff
                 if "roc_auc" in stat_keys:
-                    matrices[metric_name]["roc_auc"][i, j] = (
-                        roc_auc if roc_auc is not None else np.nan
-                    )
+                    matrices[metric_name]["roc_auc"][i, j] = roc_auc if roc_auc is not None else np.nan
 
                 records.append(
                     {
@@ -319,9 +313,7 @@ def _compute_roc_metrics(
         return (np.nan, np.nan, np.nan, np.nan, np.nan)
 
     scores = np.concatenate([pos, neg])
-    labels = np.concatenate(
-        [np.ones(pos.shape[0], dtype=int), np.zeros(neg.shape[0], dtype=int)]
-    )
+    labels = np.concatenate([np.ones(pos.shape[0], dtype=int), np.zeros(neg.shape[0], dtype=int)])
 
     desc_indices = np.argsort(scores)[::-1]
     scores = scores[desc_indices]
@@ -376,9 +368,7 @@ def _symmetric_divergences(values_a: np.ndarray, values_b: np.ndarray) -> tuple[
     kl_sym = 0.5 * (kl_ab + kl_ba)
 
     m = 0.5 * (p + q)
-    js_div = 0.5 * (
-        float(np.sum(p * np.log(p / m))) + float(np.sum(q * np.log(q / m)))
-    )
+    js_div = 0.5 * (float(np.sum(p * np.log(p / m))) + float(np.sum(q * np.log(q / m))))
 
     return kl_sym, js_div
 

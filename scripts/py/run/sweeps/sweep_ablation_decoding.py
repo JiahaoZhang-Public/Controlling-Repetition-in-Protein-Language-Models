@@ -15,7 +15,7 @@ BASE_OVERRIDES = [
     "split.train=100",
     "split.test=100",
     # this should be larger than train+test since train and test are selected from the pool
-    "dataset.opt.target_per_side=1000", 
+    "dataset.opt.target_per_side=1000",
     "generation.uncond.length_min=50",
     "generation.uncond.length_max=512",
     "generation.prefix.prefix_frac=0.1",
@@ -81,7 +81,7 @@ def build_experiments() -> list[dict[str, object]]:
             ],
         ),
         (
-            "entropy_esm3", # schedule = cosine, strategy = entropy, temperature annealing = False
+            "entropy_esm3",  # schedule = cosine, strategy = entropy, temperature annealing = False
             [
                 "generation.uncond.overrides.strategy=entropy",
                 "generation.prefix.overrides.strategy=entropy",

@@ -7,8 +7,8 @@ import torch
 from torch import nn
 
 from replm.config import BackendConfig
-from replm.models.masked.esm3_config import ESM3InitConfig
 from replm.models.masked.esm3_backend import ESM3Backend
+from replm.models.masked.esm3_config import ESM3InitConfig
 from replm.models.utils import get_special_ids
 
 

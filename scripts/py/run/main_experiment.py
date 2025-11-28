@@ -194,7 +194,9 @@ def main(cfg: DictConfig) -> None:
     dataset.build(run_dir / "dataset")
     pos_records = _records_from_iter(dataset.iter_pos())
     neg_records = _records_from_iter(dataset.iter_neg())
-    logger.info("Loaded dataset with %d positive / %d negative sequences.", len(pos_records), len(neg_records)) # noqa: E501
+    logger.info(
+        "Loaded dataset with %d positive / %d negative sequences.", len(pos_records), len(neg_records)
+    )  # noqa: E501
 
     rng = random.Random(seed)
     pos_train, pos_test = _split_records(pos_records, cfg.split.train, cfg.split.test, rng=rng)
@@ -216,15 +218,19 @@ def main(cfg: DictConfig) -> None:
 
     # ----- model backend -----
     backend = _instantiate_backend(cfg.models)
-    backend.load()  
+    backend.load()
     layers: torch.nn.ModuleList = backend.layers
     layers_idx = list(range(len(layers)))
     batch_size = int(cfg.activation.batch_size)
     logger.info("Model has %d layers", len(layers))
     logger.info("Extracting activations for layers=%s", layers_idx)
 
-    pos_hidden = backend.activations([rec.sequence for rec in pos_train], layers=layers_idx, batch_size=batch_size) # noqa: E501
-    neg_hidden = backend.activations([rec.sequence for rec in neg_train], layers=layers_idx, batch_size=batch_size) # noqa: E501
+    pos_hidden = backend.activations(
+        [rec.sequence for rec in pos_train], layers=layers_idx, batch_size=batch_size
+    )  # noqa: E501
+    neg_hidden = backend.activations(
+        [rec.sequence for rec in neg_train], layers=layers_idx, batch_size=batch_size
+    )  # noqa: E501
     by_layer = {}
     pos_dict = _activations_to_by_layer(pos_hidden, layers_idx)
     neg_dict = _activations_to_by_layer(neg_hidden, layers_idx)

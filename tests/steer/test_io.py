@@ -15,7 +15,9 @@ from replm.steer.ops import AffineEdit
 
 
 def test_affine_edit_serialization_roundtrip(tmp_path: Path):
-    edit = AffineEdit(layer=1, dims=torch.tensor([0, 2]), mul=torch.tensor([0.5, 1.5]), add=torch.tensor([1.0, -1.0])) # noqa: E501
+    edit = AffineEdit(
+        layer=1, dims=torch.tensor([0, 2]), mul=torch.tensor([0.5, 1.5]), add=torch.tensor([1.0, -1.0])
+    )  # noqa: E501
     payload = affine_edit_to_dict(edit)
     restored = affine_edit_from_dict(payload)
     assert torch.allclose(restored.mul, edit.mul)

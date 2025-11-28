@@ -33,9 +33,15 @@ include = ["replm*"]
 [tool.black]
 line-length = 108
 target-version = ["py310", "py311"]
+extend-exclude = '''
+(
+  src/replm/models/dplm
+)
+'''
 
 [tool.ruff]
 line-length = 108
+extend-exclude = ["src/replm/models/dplm"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]

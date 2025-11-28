@@ -48,7 +48,7 @@ class ModelBackend(ABC):
             self.cfg = backend_cfg
         self.model: Any = None
         self.tokenizer: Any = None
-        
+
     # ----- lifecycle -----
     @abstractmethod
     def load(self) -> None:
@@ -191,14 +191,14 @@ class ModelBackend(ABC):
                 return path
 
         return None
-    
+
     @property
     def layers(self) -> nn.ModuleList:
         if self.steering_layer_attr_path is None:
             raise RuntimeError("Call load() before accessing layers.")
         model_blocks = self._resolve_blocks(self.steering_layer_attr_path)
         return model_blocks
-    
+
     def _resolve_blocks(self, layer_attr_path: tuple[str, ...]) -> nn.ModuleList:
         obj: nn.Module = self.model
         for attr in layer_attr_path:

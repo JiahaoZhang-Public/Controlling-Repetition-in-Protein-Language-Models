@@ -33,9 +33,7 @@ def structure_utility_score(plddt: float, ptm: float) -> float:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Summarize decoding-step ablations for ESM3."
-    )
+    parser = argparse.ArgumentParser(description="Summarize decoding-step ablations for ESM3.")
     parser.add_argument(
         "--root",
         type=Path,

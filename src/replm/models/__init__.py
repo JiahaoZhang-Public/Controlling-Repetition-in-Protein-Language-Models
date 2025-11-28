@@ -54,6 +54,8 @@ _AUTOLOAD_MODULES = {
     "protgpt2": "replm.models.autoregressive.hf_causal_lm",
     "progen2_small": "replm.models.autoregressive.hf_causal_lm",
     "progen2_base": "replm.models.autoregressive.hf_causal_lm",
+    "dplm": "replm.models.dplm.dplm",
+    "dplm_esm": "replm.models.dplm.modules.dplm_modeling_esm",
 }
 
 

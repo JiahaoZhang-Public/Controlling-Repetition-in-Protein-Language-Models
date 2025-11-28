@@ -130,7 +130,7 @@ class ESM2GenerationConfig:
     - temperature_annealing: 是否对 temperature 做简单退火
     """
 
-    num_steps: int =20
+    num_steps: int = 20
     do_sample: bool = True
     temperature: float = 1.0
     top_k: int | None = None
@@ -186,9 +186,7 @@ class ESM2Backend(ModelBackend):
         self._device = torch.device(self.cfg.device)
         self._target_dtype = resolve_torch_dtype(self.cfg.dtype)
 
-        self._autocast_device = (
-            self._device.type if self._device.type in {"cuda", "mps"} else None
-        )
+        self._autocast_device = self._device.type if self._device.type in {"cuda", "mps"} else None
         self._autocast_enabled = bool(self.torch_autocast and self._autocast_device)
         self._autocast_dtype = torch.float16
 
@@ -313,8 +311,8 @@ class ESM2Backend(ModelBackend):
         if self.model is None:
             raise RuntimeError("Call load() before activations().")
 
-        tokens = token_batch["tokens"]      # [B, T]
-        attn_mask = token_batch["mask"]     # [B, T]
+        tokens = token_batch["tokens"]  # [B, T]
+        attn_mask = token_batch["mask"]  # [B, T]
         model_attn_mask = token_batch.get("attention_mask")
         cache: dict[int, torch.Tensor] = {}
 
@@ -350,14 +348,10 @@ class ESM2Backend(ModelBackend):
         """根据 layer_idx 拿到对应的 nn.Module."""
         if layer_idx == -1:
             if self._final_norm is None:
-                raise KeyError(
-                    "Final norm was not captured; set include_final_norm=True."
-                )
+                raise KeyError("Final norm was not captured; set include_final_norm=True.")
             return self._final_norm
         if layer_idx < 0 or layer_idx >= len(self._blocks):
-            raise KeyError(
-                f"Layer index {layer_idx} out of range for {len(self._blocks)} blocks."
-            )
+            raise KeyError(f"Layer index {layer_idx} out of range for {len(self._blocks)} blocks.")
         return self._blocks[layer_idx]
 
     def _run_model(
@@ -376,9 +370,7 @@ class ESM2Backend(ModelBackend):
             kwargs["attention_mask"] = attention_mask
 
         if self._autocast_enabled and self._autocast_device is not None:
-            with torch.autocast(
-                device_type=self._autocast_device, dtype=self._autocast_dtype
-            ):
+            with torch.autocast(device_type=self._autocast_device, dtype=self._autocast_dtype):
                 model(**kwargs)
         else:
             model(**kwargs)
@@ -452,9 +444,9 @@ class ESM2Backend(ModelBackend):
 
         # ------- 候选 token 集合：优先 20 AA -------
         if self._aa_ids is not None and len(self._aa_ids) > 0:
-            aa_ids = self._aa_ids.to(device)          # [N_aa]
+            aa_ids = self._aa_ids.to(device)  # [N_aa]
             cand_ids = aa_ids
-            cand_logits = logits[aa_ids]              # [N_aa]
+            cand_logits = logits[aa_ids]  # [N_aa]
         else:
             # fallback：屏蔽 special tokens，在全 vocab 上操作
             mask = torch.ones_like(logits, dtype=torch.bool)
@@ -481,17 +473,10 @@ class ESM2Backend(ModelBackend):
 
         # ------- n-gram blocking: no_repeat_ngram_size -------
         n = int(no_repeat_ngram_size)
-        if (
-            n > 0
-            and current_seq is not None
-            and position is not None
-            and len(current_seq) >= n
-        ):
+        if n > 0 and current_seq is not None and position is not None and len(current_seq) >= n:
             L = len(current_seq)
             # 所有已有 n-gram
-            existing_ngrams: set[str] = set(
-                current_seq[i : i + n] for i in range(L - n + 1)
-            )
+            existing_ngrams: set[str] = set(current_seq[i : i + n] for i in range(L - n + 1))
             # 如果当前位置已有一个 n-gram，把它从集合里去掉，
             # 这样允许“原地不动”而不会被当成重复。
             start_idx = position - n + 1
@@ -577,11 +562,7 @@ class ESM2Backend(ModelBackend):
                       其它（top_k / top_p 等）后面可以扩展
         mutable_start : 从哪个位置开始允许被更新（0-based，针对氨基酸序列本身）
         """
-        if (
-            self.model is None
-            or self.alphabet is None
-            or self._batch_converter is None
-        ):
+        if self.model is None or self.alphabet is None or self._batch_converter is None:
             raise RuntimeError("Call load() before generation.")
 
         model = self.model
@@ -599,9 +580,7 @@ class ESM2Backend(ModelBackend):
 
         temperature = float(getattr(cfg, "temperature", 1.0))
         strategy = getattr(cfg, "strategy", "default")  # "default" or "random"
-        temperature_annealing = bool(
-            getattr(cfg, "temperature_annealing", False)
-        )
+        temperature_annealing = bool(getattr(cfg, "temperature_annealing", False))
 
         data = [("seq", seq)]
         _, _, tokens = batch_converter(data)  # [1, T]，带 BOS/EOS
@@ -613,13 +592,12 @@ class ESM2Backend(ModelBackend):
             idx for idx, tok_id in enumerate(token_indices) if tok_id not in self._special_ids
         ]
         if len(aa_token_positions) != L:
-            raise RuntimeError(
-                "Tokenizer special tokens mismatch: AA positions != sequence length."
-            )
+            raise RuntimeError("Tokenizer special tokens mismatch: AA positions != sequence length.")
 
         # 2) 逐 step 迭代，每 step 只 forward 一次
-        for step_idx in tqdm(range(num_steps), desc="Gibbs sampling, Generation step %d/%d",
-                             total=num_steps):
+        for step_idx in tqdm(
+            range(num_steps), desc="Gibbs sampling, Generation step %d/%d", total=num_steps
+        ):
             # 当前 step 的温度（支持简单退火）
             if temperature_annealing and num_steps > 1:
                 # 简单的线性退火示例：从 temperature -> 0.1

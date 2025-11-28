@@ -36,6 +36,4 @@ def write_fasta(seqs: Iterable[tuple[str, str]], path: Path) -> None:
         for header, seq in seqs:
             fout.write(f">{header}\n")
             for i in range(0, len(seq), 60):
-                fout.write(seq[i:i+60] + "\n")
-                
-                
+                fout.write(seq[i : i + 60] + "\n")

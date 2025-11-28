@@ -45,11 +45,13 @@ BASE_OVERRIDES = [
     "generation.prefix.prefix_frac=0.1",
 ]
 
+
 def _float_label(val: float, digits: int = 2) -> str:
     text = f"{val:.{digits}f}".rstrip("0").rstrip(".")
     if not text:
         text = "0"
     return text
+
 
 def _normalize_overrides(overrides: Iterable[str]) -> list[str]:
     """If the key is *.overrides.* and does not start with '+', add '+' (Hydra's append semantic)."""
@@ -61,95 +63,113 @@ def _normalize_overrides(overrides: Iterable[str]) -> list[str]:
             processed.append(ov)
     return processed
 
+
 def build_base_methods() -> list[tuple[str, list[str]]]:
     methods: list[tuple[str, list[str]]] = []
 
     # Control baseline
-    methods.append((
-        "control_default",
-        [
-            "methods=control",
-        ],
-    ))
+    methods.append(
+        (
+            "control_default",
+            [
+                "methods=control",
+            ],
+        )
+    )
 
     # Temperature sweep
     for val in [0.7, 1.0, 1.3]:
         label = _float_label(val).replace(".", "p")
-        methods.append((
-            f"temperature_{label}",
-            [
-                "methods=control",
-                f"generation.uncond.overrides.temperature={val}",
-                f"generation.prefix.overrides.temperature={val}",
-            ],
-        ))
+        methods.append(
+            (
+                f"temperature_{label}",
+                [
+                    "methods=control",
+                    f"generation.uncond.overrides.temperature={val}",
+                    f"generation.prefix.overrides.temperature={val}",
+                ],
+            )
+        )
 
     # Top-p sampling sweep
     for val in [0.80, 0.85, 0.90, 0.95, 0.98, 1.00]:
         label = _float_label(val, digits=2).replace(".", "p")
-        methods.append((
-            f"top_p_{label}",
-            [
-                "methods=control",
-                f"generation.uncond.overrides.top_p={val}",
-                f"generation.prefix.overrides.top_p={val}",
-            ],
-        ))
+        methods.append(
+            (
+                f"top_p_{label}",
+                [
+                    "methods=control",
+                    f"generation.uncond.overrides.top_p={val}",
+                    f"generation.prefix.overrides.top_p={val}",
+                ],
+            )
+        )
 
     # No repeat n-gram constraint
     for size in [2, 3, 4]:
-        methods.append((
-            f"no_repeat_ngram_{size}",
-            [
-                "methods=control",
-                f"generation.uncond.overrides.no_repeat_ngram_size={size}",
-                f"generation.prefix.overrides.no_repeat_ngram_size={size}",
-            ],
-        ))
+        methods.append(
+            (
+                f"no_repeat_ngram_{size}",
+                [
+                    "methods=control",
+                    f"generation.uncond.overrides.no_repeat_ngram_size={size}",
+                    f"generation.prefix.overrides.no_repeat_ngram_size={size}",
+                ],
+            )
+        )
 
     # Repetition penalty sweep
     for val in [1.1, 1.2, 1.3]:
         label = _float_label(val, digits=2).replace(".", "p")
-        methods.append((
-            f"repetition_penalty_{label}",
-            [
-                "methods=control",
-                f"generation.uncond.overrides.repetition_penalty={val}",
-                f"generation.prefix.overrides.repetition_penalty={val}",
-            ],
-        ))
+        methods.append(
+            (
+                f"repetition_penalty_{label}",
+                [
+                    "methods=control",
+                    f"generation.uncond.overrides.repetition_penalty={val}",
+                    f"generation.prefix.overrides.repetition_penalty={val}",
+                ],
+            )
+        )
 
     # Neuron deactivation (NeuronTopK)
     for topk in [8, 64, 256, 1024, 4096]:
-        methods.append((
-            f"neuron_deactivation_{topk}",
-            [
-                "methods=neuron_topk",
-                f"methods.topk={topk}",
-            ],
-        ))
+        methods.append(
+            (
+                f"neuron_deactivation_{topk}",
+                [
+                    "methods=neuron_topk",
+                    f"methods.topk={topk}",
+                ],
+            )
+        )
 
     # UUCS (contrastive layer) sweep over layers 0-26
     for layer in range(27):
-        methods.append((
-            f"uccs_layer{layer:02d}",
-            [
-                "methods=contrastive_layer",
-                f"methods.layer={layer}",
-            ],
-        ))
+        methods.append(
+            (
+                f"uccs_layer{layer:02d}",
+                [
+                    "methods=contrastive_layer",
+                    f"methods.layer={layer}",
+                ],
+            )
+        )
 
     # Probe steering sweep over layers 0-26
     for layer in range(27):
-        methods.append((
-            f"probe_layer{layer:02d}",
-            [
-                "methods=probe_layer",
-                f"methods.layer={layer}",
-            ],
-        ))
+        methods.append(
+            (
+                f"probe_layer{layer:02d}",
+                [
+                    "methods=probe_layer",
+                    f"methods.layer={layer}",
+                ],
+            )
+        )
 
     return methods
+
 
 def _dataset_overrides(dataset: str) -> list[str]:
     """Inject the positive and negative sample file paths into the dataset.* overrides."""
@@ -164,6 +184,7 @@ def _dataset_overrides(dataset: str) -> list[str]:
         f"dataset.neg_fasta={neg['neg_fasta']}",
         f"dataset.neg_metrics={neg['neg_metrics']}",
     ]
+
 
 def build_experiments() -> list[dict[str, object]]:
     """
@@ -186,12 +207,15 @@ def build_experiments() -> list[dict[str, object]]:
                     + method_overrides
                 )
 
-                exps.append({
-                    "id": exp_id,
-                    "overrides": _normalize_overrides(overrides),
-                })
+                exps.append(
+                    {
+                        "id": exp_id,
+                        "overrides": _normalize_overrides(overrides),
+                    }
+                )
 
     return exps
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Enumerate steering experiments.")
@@ -216,6 +240,7 @@ def main() -> None:
     for exp in experiments:
         overrides = ",".join(exp["overrides"])
         print(f"{exp['id']}::{overrides}")
+
 
 if __name__ == "__main__":
     main()

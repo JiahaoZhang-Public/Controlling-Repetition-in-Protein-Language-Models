@@ -105,10 +105,7 @@ def read_metrics_file(path: Path) -> dict[str, float]:
                     values[field].append(float(row[field]))
                 except ValueError:
                     continue
-    return {
-        field: (sum(vals) / len(vals) if vals else float("nan"))
-        for field, vals in values.items()
-    }
+    return {field: (sum(vals) / len(vals) if vals else float("nan")) for field, vals in values.items()}
 
 
 def read_summary_file(path: Path) -> dict[str, float]:
@@ -150,14 +147,12 @@ def aggregate_store(
             for method, dataset_map in method_map.items():
                 aggregated[model][condition][method] = {}
                 for dataset, runs in dataset_map.items():
-                    aggregated[model][condition][method][dataset] = compute_stats(
-                        runs, fields
-                    )
+                    aggregated[model][condition][method][dataset] = compute_stats(runs, fields)
     return aggregated
 
 
 def compute_stats(
-        runs: Iterable[dict[str, float]],
+    runs: Iterable[dict[str, float]],
     fields: Iterable[tuple[str, str]],
 ) -> dict[str, tuple[float, float]]:
     result: dict[str, tuple[float, float]] = {}
@@ -180,7 +175,7 @@ def format_stat(value: tuple[float, float] | None) -> str:
 
 def render_table(
     out_handle,
-        header: list[str],
+    header: list[str],
     rows: list[list[str]],
 ) -> None:
     if not rows:
@@ -205,12 +200,7 @@ def build_rows(
         dataset_label = DATASET_LABELS.get(dataset, dataset)
         for method in model_cfg["method_order"]:
             method_cfg = model_cfg["methods"][method]
-            stats = (
-                aggregated_metrics.get(model_key, {})
-                .get(condition, {})
-                .get(method, {})
-                .get(dataset)
-            )
+            stats = aggregated_metrics.get(model_key, {}).get(condition, {}).get(method, {}).get(dataset)
             if not stats:
                 continue
             row = [dataset_label, method_cfg["label"], method_cfg["parameter"]]
@@ -262,18 +252,14 @@ def main() -> None:
         prefix_metrics_data = None
         if prefix_metrics.exists():
             prefix_metrics_data = read_metrics_file(prefix_metrics)
-            metrics_store[model]["conditional"][method][dataset].append(
-                prefix_metrics_data
-            )
+            metrics_store[model]["conditional"][method][dataset].append(prefix_metrics_data)
         else:
             print(f"Missing {prefix_metrics}", file=sys.stderr)
 
         uncond_metrics_data = None
         if uncond_metrics.exists():
             uncond_metrics_data = read_metrics_file(uncond_metrics)
-            metrics_store[model]["unconditional"][method][dataset].append(
-                uncond_metrics_data
-            )
+            metrics_store[model]["unconditional"][method][dataset].append(uncond_metrics_data)
         else:
             print(f"Missing {uncond_metrics}", file=sys.stderr)
 
@@ -288,9 +274,7 @@ def main() -> None:
         else:
             prefix_summary_data.pop("utility_score", None)
         if prefix_summary_data:
-            summary_store[model]["conditional"][method][dataset].append(
-                prefix_summary_data
-            )
+            summary_store[model]["conditional"][method][dataset].append(prefix_summary_data)
 
         uncond_summary_data: dict[str, float] = {}
         if uncond_summary.exists():
@@ -303,9 +287,7 @@ def main() -> None:
         else:
             uncond_summary_data.pop("utility_score", None)
         if uncond_summary_data:
-            summary_store[model]["unconditional"][method][dataset].append(
-                uncond_summary_data
-            )
+            summary_store[model]["unconditional"][method][dataset].append(uncond_summary_data)
 
     aggregated_metrics = aggregate_store(metrics_store, METRIC_FIELDS)
     aggregated_summary = aggregate_store(summary_store, SUMMARY_FIELDS)
@@ -321,18 +303,14 @@ def main() -> None:
             out_handle.write("### Detailed Metrics\n\n")
             for condition in ("unconditional", "conditional"):
                 out_handle.write(f"**{CONDITION_LABELS[condition]}**\n\n")
-                header = ["Dataset", "Method", "Parameter"] + [
-                    label for _, label in METRIC_FIELDS
-                ]
+                header = ["Dataset", "Method", "Parameter"] + [label for _, label in METRIC_FIELDS]
                 rows = build_rows(model_key, condition, aggregated_metrics, METRIC_FIELDS)
                 render_table(out_handle, header, rows)
 
             out_handle.write("### Summary Scores\n\n")
             for condition in ("unconditional", "conditional"):
                 out_handle.write(f"**{CONDITION_LABELS[condition]}**\n\n")
-                header = ["Dataset", "Method", "Parameter"] + [
-                    label for _, label in SUMMARY_FIELDS
-                ]
+                header = ["Dataset", "Method", "Parameter"] + [label for _, label in SUMMARY_FIELDS]
                 rows = build_rows(model_key, condition, aggregated_summary, SUMMARY_FIELDS)
                 render_table(out_handle, header, rows)
 

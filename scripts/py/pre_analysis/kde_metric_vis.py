@@ -214,7 +214,6 @@ def plot_kdes(
         grid, densities = compute_kde_curves(dataset_metrics, metric_label)
 
         for dataset in NATURAL_DATASETS + PLM_DATASETS:
-            label = dataset
             color = DATASET_COLORS[dataset]
             ax.plot(
                 grid,

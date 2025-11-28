@@ -15,6 +15,7 @@ from .base import DatasetProvider
 
 # ===================== Configuration ===================== #
 
+
 @dataclass(frozen=True)
 class FilterConfig:
     """Thresholds applied before balancing the positive/negative pools."""
@@ -28,7 +29,7 @@ class FilterConfig:
     max_len: int = 1024
     max_per_bucket: int | None = None
     safety_key: str | None = None  # metrics flag that must equal 1
-    truth_key: str | None = None   # metrics flag that must equal 1
+    truth_key: str | None = None  # metrics flag that must equal 1
 
 
 @dataclass(frozen=True)
@@ -54,12 +55,13 @@ class MetricKeyConfig:
     """
 
     entropy: tuple[str, ...] = ("entropy_norm", "H_norm")
-    repetition: tuple[str, ...] = ("entropy_norm")
-    utility: tuple[str, ...] = ("ptm")
+    repetition: tuple[str, ...] = "entropy_norm"
+    utility: tuple[str, ...] = "ptm"
     plddt: tuple[str, ...] = ("plddt_mean_0_100", "plddt", "plddt_mean_01")
 
 
 # ===================== I/O helpers ===================== #
+
 
 def _first_token(h: str) -> str:
     h = h.strip()
@@ -92,11 +94,7 @@ def _read_fasta_with_ids(path: Path) -> list[tuple[str, str]]:
         return [(f"{path.stem}_{i:06d}", s) for i, s in enumerate(seqs) if s]
 
     # Normalize blank IDs.
-    return [
-        (sid if sid else f"{path.stem}_{i:06d}", s)
-        for i, (sid, s) in enumerate(out)
-        if s
-    ]
+    return [(sid if sid else f"{path.stem}_{i:06d}", s) for i, (sid, s) in enumerate(out) if s]
 
 
 def _load_metrics(path: Path) -> dict[str, dict]:
@@ -148,6 +146,7 @@ def _bucketize(val: float, edges: Sequence[float | int]) -> int | None:
 
 
 # ===================== Metric adapters ===================== #
+
 
 def _get_metric(
     m: dict,
@@ -208,6 +207,7 @@ def _get_length(m: dict, seq: str) -> int:
 
 
 # ===================== Dataset implementation ===================== #
+
 
 class PosNegDataset:
     """
@@ -347,7 +347,7 @@ class PosNegDataset:
         neg_items: list[dict],
         k_pos: int,
         k_neg: int,
-        ) -> tuple[list[dict], list[dict]]:
+    ) -> tuple[list[dict], list[dict]]:
         """Composite scoring: maximize delta repetition while minimizing delta bio."""
         rep_key = "rep_metric"
         bio_key = "utility_metric"
@@ -438,7 +438,7 @@ class PosNegDataset:
         neg_items: list[dict],
         k_pos: int,
         k_neg: int,
-        ) -> tuple[list[dict], list[dict]]:
+    ) -> tuple[list[dict], list[dict]]:
         """Pareto-style selection using a non-dominated front."""
         rep_key = "rep_metric"
         bio_key = "utility_metric"
@@ -749,6 +749,7 @@ class PosNegDataset:
 
 
 # ===================== Provider wrapper ===================== #
+
 
 class PosNegProvider(DatasetProvider):
     """Thin wrapper that builds/caches PosNegDataset instances and artifacts."""

@@ -115,7 +115,7 @@ class HFCausalLMBackend(ModelBackend):
         layers: Sequence[int],
         *,
         batch_size: int = 8,
-        pooling: Pooling = 'last_nonpad',
+        pooling: Pooling = "last_nonpad",
         as_numpy: bool = False,
         requires_grad: bool | None = None,
     ):
@@ -171,6 +171,7 @@ class HFCausalLMBackend(ModelBackend):
             raise ValueError("Prefix length exceeds target length.")
         return self._generate(prompt_ids, target_len, gen_cfg)
 
+
 @register_model("protgpt2")
 class ProtGPT2Backend(HFCausalLMBackend):
     """
@@ -213,7 +214,8 @@ class Progen2SmallBackend(HFCausalLMBackend):
 
     def _translate_length(self, target_len: int) -> int:
         return max(1, int(target_len) + self.length_offset)
-    
+
+
 @register_model("progen2_base")
 class Progen2BaseBackend(HFCausalLMBackend):
     """

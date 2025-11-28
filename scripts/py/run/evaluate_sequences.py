@@ -27,6 +27,7 @@ from replm.utils.io import read_fasta
 try:
     from tqdm.auto import tqdm  # type: ignore
 except Exception:  # pragma: no cover - best-effort fallback if tqdm is missing
+
     def tqdm(x=None, **_):  # type: ignore
         return x
 
@@ -66,7 +67,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "JSON object with overrides for the structure proxy generation params "
-            "(e.g., '{\"num_steps\": 20, \"temperature\": 0.9}'). "
+            '(e.g., \'{"num_steps": 20, "temperature": 0.9}\'). '
             "Alternatively, provide a path to a JSON file."
         ),
     )
@@ -153,9 +154,7 @@ def main() -> None:
             ptm_val = metrics.get("ptm", float("nan"))
             ptm = float(ptm_val) if ptm_val is not None else float("nan")
             raw_plddt = (
-                metrics.get("plddt_mean_0_100")
-                or metrics.get("plddt")
-                or metrics.get("plddt_mean_01")
+                metrics.get("plddt_mean_0_100") or metrics.get("plddt") or metrics.get("plddt_mean_01")
             )
             raw_plddt_f = float(raw_plddt) if raw_plddt is not None else float("nan")
             plddt = _coerce_plddt(raw_plddt_f)
@@ -176,7 +175,6 @@ def main() -> None:
         )
         rep_scores.append(rep_score)
         utility_scores.append(structure_utility_score(plddt, ptm))
-            
 
     with out_csv.open("w", newline="") as fout:
         writer = csv.DictWriter(
@@ -199,9 +197,7 @@ def main() -> None:
 
     pid_score: float | None = None
     if len(rows) >= 2:
-        pid_score = float(
-            pairwise_percent_identity([row["sequence"] for row in rows], return_matrix=False)
-        )
+        pid_score = float(pairwise_percent_identity([row["sequence"] for row in rows], return_matrix=False))
 
     summary = {
         "num_sequences": len(rows),

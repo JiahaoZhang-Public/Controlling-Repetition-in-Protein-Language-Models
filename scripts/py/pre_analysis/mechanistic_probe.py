@@ -12,8 +12,8 @@ import argparse
 import csv
 import inspect
 import json
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Iterable, Sequence
 
 import matplotlib.pyplot as plt  # pyright: ignore[reportMissingImports]
 import numpy as np
@@ -116,9 +116,7 @@ def parse_args() -> argparse.Namespace:
         help="Minimum pLDDT filter for both sides (85.0 by default to mirror dataset cfg).",
     )
     parser.add_argument("--min-len", type=int, default=50, help="Minimum sequence length to keep.")
-    parser.add_argument(
-        "--max-len", type=int, default=1024, help="Maximum sequence length to keep."
-    )
+    parser.add_argument("--max-len", type=int, default=1024, help="Maximum sequence length to keep.")
     parser.add_argument(
         "--max-per-side",
         type=int,
@@ -167,7 +165,9 @@ def _sample_pairs(pairs: list[tuple[str, str]], k: int, seed: int) -> list[tuple
     return [pairs[i] for i in idx]
 
 
-def _build_posneg_dataset(args: argparse.Namespace, cache_dir: Path) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
+def _build_posneg_dataset(
+    args: argparse.Namespace, cache_dir: Path
+) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
     cfg = {
         "pos_fasta": args.pos_fasta,
         "pos_metrics": args.pos_metrics,
@@ -227,6 +227,7 @@ def _load_backend(
     backend_cfg = BackendConfig(**OmegaConf.to_container(cfg.backend, resolve=True))
 
     params = OmegaConf.to_container(cfg.get("params", {}), resolve=True) or {}
+
     def _strip_hydra_keys(obj):
         if not isinstance(obj, dict):
             return obj
@@ -424,10 +425,12 @@ def main() -> None:
     print(f"pos_pairs: {len(pos_pairs)}")
     print(f"neg_pairs: {len(neg_pairs)}")
     sequences = [s for _, s in pos_pairs] + [s for _, s in neg_pairs]
-    labels = np.concatenate([
-        np.ones(len(pos_pairs), dtype=np.float32),
-        np.zeros(len(neg_pairs), dtype=np.float32),
-    ])
+    labels = np.concatenate(
+        [
+            np.ones(len(pos_pairs), dtype=np.float32),
+            np.zeros(len(neg_pairs), dtype=np.float32),
+        ]
+    )
 
     backend = _load_backend(
         args.model_config,

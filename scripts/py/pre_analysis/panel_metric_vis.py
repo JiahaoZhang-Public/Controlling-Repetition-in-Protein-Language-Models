@@ -162,9 +162,7 @@ def compute_kde_curves(
     return grid, densities
 
 
-def compute_js_matrix(
-    dataset_metrics: dict[str, dict[str, np.ndarray]], metric_label: str
-) -> np.ndarray:
+def compute_js_matrix(dataset_metrics: dict[str, dict[str, np.ndarray]], metric_label: str) -> np.ndarray:
     n = len(DATASET_ORDER)
     matrix = np.zeros((n, n), dtype=float)
     for i, dataset_a in enumerate(DATASET_ORDER):
@@ -194,9 +192,7 @@ def _js_divergence(values_a: np.ndarray, values_b: np.ndarray) -> float:
     q /= q.sum()
     m = 0.5 * (p + q)
 
-    js_div = 0.5 * (
-        float(np.sum(p * np.log(p / m))) + float(np.sum(q * np.log(q / m)))
-    )
+    js_div = 0.5 * (float(np.sum(p * np.log(p / m))) + float(np.sum(q * np.log(q / m))))
     return js_div
 
 
@@ -262,7 +258,6 @@ def plot_panel(
     heatmaps = []
     heat_axes = []
 
-    title_size = 9 * font_scale
     axis_label_size = 8 * font_scale
     tick_label_size = 7 * font_scale
     legend_size = 7 * font_scale
@@ -335,11 +330,7 @@ def plot_panel(
     divider = make_axes_locatable(heat_axes[-1])
     cax = divider.append_axes("right", size="3.5%", pad=0.12)
 
-    cbar = fig.colorbar(
-        heatmaps[-1],
-        cax=cax,
-        orientation="vertical"
-    )
+    cbar = fig.colorbar(heatmaps[-1], cax=cax, orientation="vertical")
     cbar.ax.set_ylabel("Jensen-Shannon divergence", fontsize=cbar_label_size, labelpad=6 * font_scale)
     cbar.ax.tick_params(length=2.0, width=0.6, labelsize=tick_label_size)
 
