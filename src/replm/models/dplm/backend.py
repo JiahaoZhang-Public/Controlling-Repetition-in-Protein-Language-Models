@@ -1,3 +1,11 @@
+# src/replm/models/dplm/backend.py
+"""
+DPLM backend implementation.
+
+In this file, we implement the ModelBackend interface for DPLM.
+"""
+
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -16,16 +24,16 @@ from .dplm import DiffusionProteinLanguageModel
 @dataclass
 class DPLMInitConfig:
     """
-    DPLM 初始化配置
+    DPLM Initialization Configuration
     """
-    model_name: str = "airkingbd/dplm_150m"
+    model_name: str = "airkingbd/dplm_650m"
     torch_autocast: bool = False
 
 
 @dataclass
 class DPLMGenerationConfig:
     """
-    DPLM 生成配置，对应 DiffusionProteinLanguageModel.generate 的参数。
+    DPLM Generation Configuration, corresponding to the parameters of DiffusionProteinLanguageModel.generate.
     """
     max_iter: int = 500
     temperature: float | None = None
@@ -37,7 +45,7 @@ class DPLMGenerationConfig:
 @register_model("dplm")
 class DPLMBackend(ModelBackend):
     """
-    把 DPLM 封成 REPLM 的 ModelBackend 接口。
+    Wrap DPLM as the ModelBackend interface of REPLM.
 
     """
 
@@ -75,14 +83,14 @@ class DPLMBackend(ModelBackend):
     @property
     def layers(self) -> nn.ModuleList:  # type: ignore[override]
         """
-        暴露给上层 / Steerer 的层列表。
+        Expose the layer list to the upper layer / Steerer.
         """
         return nn.ModuleList(self._blocks)
 
     @property
     def steering_layer_attr_path(self) -> tuple[str, ...] | None:  # type: ignore[override]
         """
-        Steerer 会从 self.model.layers 下面拿 blocks。
+        Steerer will take blocks from self.model.layers below.
         """
         return ("layers",)
 
@@ -90,11 +98,11 @@ class DPLMBackend(ModelBackend):
 
     def _guess_expected_num_layers(self) -> int | None:
         """
-        根据 model_name 猜一个 layer 数（来自 HF 模型卡）：
+        Guess a layer number based on model_name (from HF model card):
           dplm_150m -> 30
           dplm_650m -> 33
           dplm_3b   -> 36
-        猜不到就返回 None。
+        If not guessed, return None.
         """
         name = self.init_cfg.model_name.rsplit("/", 1)[-1].lower()
         if "150m" in name:
@@ -107,10 +115,10 @@ class DPLMBackend(ModelBackend):
 
     def _init_blocks_from_model(self) -> None:
         """
-        不依赖具体实现细节，只在整个 model 里搜：
-        - 所有 nn.ModuleList
-        - 里边元素都是 nn.Module
-        - 优先长度 == 预期 num_layers 的那个
+        Without relying on specific implementation details, only search through the entire model:
+        - All nn.ModuleList
+        - The elements are all nn.Module (Transformer blocks)
+        - Prioritize the one with length == expected num_layers
         """
         if self.model is None:
             raise RuntimeError("Call load() before _init_blocks_from_model().")
@@ -186,7 +194,7 @@ class DPLMBackend(ModelBackend):
 
     def _run_model(self, tokens: torch.Tensor) -> None:
         """
-        只跑前向，真正的 hidden state 由 hook 提供。
+        Only run the forward pass, the real hidden state is provided by the hook.
         """
         if self.model is None:
             raise RuntimeError("Call load() before activations().")
@@ -286,10 +294,10 @@ class DPLMBackend(ModelBackend):
         batch_size: int = 8,
     ) -> torch.Tensor:
         """
-        对每个指定的 layer：
-          - 拿到 [B, T, D] hidden
-          - 用 attention_mask 做 mean pooling -> [B, D]
-        拼成 [N, L, D] 返回。
+            For each specified layer:
+          - Get [B, T, D] hidden
+          - Use attention_mask for mean pooling -> [B, D]
+        Concatenate into [N, L, D] and return.
         """
         if self.model is None:
             raise RuntimeError("Call load() before activations().")
