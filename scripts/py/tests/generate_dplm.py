@@ -124,7 +124,7 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--model_name", type=str, default="airkingbd/dplm_150m")
     parser.add_argument("--num_seqs", type=int, default=40)
-    parser.add_argument("--seq_lens", nargs="*", type=int, default=[64])
+    parser.add_argument("--seq_lens", nargs="*", type=int, default=[512])
     parser.add_argument("--saveto", type=str, default="gen.fasta")
     parser.add_argument("--temperature", type=float, default=1.0)
     parser.add_argument("--sampling_strategy", type=str, default="gumbel_argmax")

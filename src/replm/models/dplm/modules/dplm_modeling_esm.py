@@ -12,6 +12,7 @@ to avoid the dependency on byprot.(which is too heavy and need openfold which is
 
 from typing import List, Optional, Tuple, Union
 
+import math
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -20,7 +21,22 @@ from transformers import AutoTokenizer
 from transformers.modeling_outputs import (
     BaseModelOutputWithPoolingAndCrossAttentions,
 )
-from transformers.models.esm.modeling_esm import *
+from transformers.models.esm.modeling_esm import (
+    EsmAttention,
+    EsmContactPredictionHead,
+    EsmEmbeddings,
+    EsmEncoder,
+    EsmForMaskedLM,
+    EsmIntermediate,
+    EsmLayer,
+    EsmLMHead,
+    EsmModel,
+    EsmOutput,
+    EsmPooler,
+    EsmPreTrainedModel,
+    EsmSelfAttention,
+    EsmSelfOutput,
+)
 
 from ....models import register_model
 
