@@ -43,7 +43,7 @@ class DPLMConfig:
     rdm_couple: bool = field(default=False)
 
 
-@register_model("dplm")
+#@register_model("dplm")
 class DiffusionProteinLanguageModel(nn.Module):
     _default_cfg = DPLMConfig()
 

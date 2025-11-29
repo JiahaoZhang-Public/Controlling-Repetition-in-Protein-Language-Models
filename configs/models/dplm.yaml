@@ -1,0 +1,26 @@
+# configs/models/dplm.yaml
+defaults:
+  - _self_
+
+name: dplm
+
+params: {}
+
+init:
+  _target_: replm.models.dplm.backend.DPLMInitConfig
+  model_name: airkingbd/dplm_150m
+  torch_autocast: true
+
+generation:
+  _target_: replm.models.dplm.backend.DPLMGenerationConfig
+  max_iter: 500
+  sampling_strategy: gumbel_argmax
+  temperature: 1.0
+  disable_resample: false
+  resample_ratio: 0.25
+
+backend:
+  task_type: mlm
+  device: ${runtime.device}
+  dtype: null
+  default_pooling: mean

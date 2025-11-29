@@ -8,8 +8,8 @@ seed: ${runtime.seed}
 pos_fasta: data/pos/uniprot.fa
 pos_metrics: data/pos/uniprot.metrics.csv
 
-neg_fasta: data/neg/esm3_raw_neg.sequences.fasta
-neg_metrics: data/neg/esm3_raw_neg.metrics.csv
+neg_fasta: data/neg/esm3_neg.fasta
+neg_metrics: data/neg/esm3_neg.metrics.csv
 
 # Map dataset-specific column names to the canonical repetition/utility fields.
 metrics:
