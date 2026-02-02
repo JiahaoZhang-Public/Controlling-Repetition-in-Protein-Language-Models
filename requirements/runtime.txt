@@ -6,4 +6,4 @@ transformers==4.38.2
 tqdm==4.66.2
 matplotlib==3.8.3
 httpx==0.26.0
-esm==3.2.3
+esm==3.2.1
