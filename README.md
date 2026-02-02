@@ -2,32 +2,48 @@
 
 ｜ Official implementation of “Controlling Repetition in Protein Language Models” (ICLR 2026)
 
-## Overview
+## Paper at a glance
 
-Protein Language Models (PLMs) have achieved major breakthroughs in structure prediction and de novo design. However, they frequently collapse into pathological repetition — generating redundant motifs or long homopolymer stretches.
-Unlike in text generation, where repetition reduces readability, in proteins it undermines structural stability and biological functionality.
+- **Problem**: PLMs often fall into motif repetition or homopolymers, which destroys foldability.
+- **Method (UCCS: Utility-Controlled Contrastive Steering)**: contrastive steering vectors learned on balanced pos/neg pools that disentangle repetition from structure.
+- **Scope**: supports masked (ESM3), autoregressive (ProtGPT2/ProGen2), and diffusion (DPLM) backends; works with both unconditional and prefix-conditioned generation.
+- **Key outcome**: reduces repetition while preserving pLDDT/pTM; baselines, ablations, and sweeps are scripted for direct reruns.
 
-This repository provides the official implementation and reproducible experiments for our paper, which introduces the first systematic framework for understanding and controlling repetition in PLMs.
+**Mechanism overview**  
+![Mechanism overview diagram](assets/figures/mechanism.png)  
+[View as PDF](assets/figures/mechanism.pdf)
 
-## Environment Setup
-
-We recommend Python 3.10 . Create an isolated environment (e.g., with `venv` or `conda`) and install runtime dependencies via `requirements/runtime.txt` (or `requirements/dev.txt` for contributors) before installing the package in editable mode:
+## Quick start (reproducible)
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 python -m pip install --upgrade pip
-pip install -r requirements/dev.txt      # or requirements/runtime.txt for users
+pip install -r requirements/runtime.txt
 pip install -e .
+PYTHONPATH=src pytest -q      # optional sanity check
 ```
 
-The `dev` requirements install the testing/linting toolchain (pytest, ruff, mypy). Run the test suite to verify your setup:
+Pinned versions live in `requirements/runtime.txt` / `pyproject.toml` (PyTorch 2.2.2, Transformers 4.38.2, Hydra 1.3.2, ESM 3.2.3).
 
-```bash
-pytest
-```
+## Reproduce the paper
 
-Configurations are managed via Hydra; override modules by selecting configs under `configs/{dataset,backend,models,methods}` when running CLI entry points.
+- **Single-run replica (UCCS on PROGEN2-Base)**  
+  `python scripts/py/run/main_experiment.py exp.id=paper_uccs_progen2 runtime.device=cuda dataset=posneg models=progen2_base methods=contrastive_layer methods.layer=0 generation.uncond.n=100 generation.prefix.n=100`
+- **Metric evaluation**  
+  `python scripts/py/run/evaluate_sequences.py outputs/paper_uccs_progen2/run_*/uncond.steer.fasta --structure-model esm3 --structure-device cuda`
+- **Full sweeps**  
+  `python scripts/py/run/sweeps/sweep_dplm.py --json > sweep_dplm.json` then launch with your scheduler (see `scripts/job/`).
+
+More detail and determinism tips: `docs/REPRODUCIBILITY.md`.
+
+## Data
+
+Curated positive pools (CATH/SCOP/UniProt) and LM-generated negative pools are prepackaged under `data/`. Metrics CSVs align with the Hydra dataset configs (`configs/dataset/posneg.yaml`). Regeneration instructions live in `data/README.md`.
+
+## Hydra config system
+
+Configurations are managed via Hydra; override modules by selecting configs under `configs/{dataset,models,methods}` when running CLI entry points.
 
 ### Adding a custom dataset
 
@@ -43,3 +59,8 @@ The `hf_causal_lm` backend wraps `AutoModelForCausalLM`, so any Hugging Face pro
 - `models=progen2_small` → `hugohrban/progen2-small` (handles the extra `<|endoftext|>` token by requesting `L+1` tokens)
 
 These configs expose `backend_kwargs` so you can tweak tokenizer/model/generation kwargs and prompts without touching code.
+
+## Citation
+
+If you find this repository helpful, please cite our ICLR 2026 paper:  
+**Controlling Repetition in Protein Language Models**, OpenReview ID: X0QxVexIJX.

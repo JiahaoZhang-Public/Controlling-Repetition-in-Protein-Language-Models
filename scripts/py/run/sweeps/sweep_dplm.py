@@ -145,11 +145,11 @@ def build_methods() -> list[tuple[str, list[str]]]:
             )
         )
 
-    # UUCS (contrastive layer) sweep over 33 layers
+    # UCCS (contrastive layer) sweep over 33 layers
     for layer in range(33):
         methods.append(
             (
-                f"uucs_layer{layer:02d}",
+                f"uccs_layer{layer:02d}",
                 [
                     "methods=contrastive_layer",
                     f"methods.layer={layer}",

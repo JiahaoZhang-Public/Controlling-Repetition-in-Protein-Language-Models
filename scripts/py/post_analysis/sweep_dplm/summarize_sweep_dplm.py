@@ -44,7 +44,7 @@ METHOD_CONFIG = {
     "resample_ratio": {"label": "Resample Ratio"},
     "neuron_deactivation": {"label": "Neuron Deactivation"},
     "probe_layer": {"label": "Probe Steering"},
-    "uucs_layer": {"label": "UUCS"},
+    "uccs_layer": {"label": "UCCS"},
 }
 METHOD_ORDER = [
     "control",
@@ -54,7 +54,7 @@ METHOD_ORDER = [
     "resample_ratio",
     "neuron_deactivation",
     "probe_layer",
-    "uucs_layer",
+    "uccs_layer",
 ]
 
 RUN_PATTERN = re.compile(r"seed_(?P<seed>\d+)_method_(?P<method>.+)_dplm_dataset_(?P<dataset>.+)$")
@@ -113,10 +113,10 @@ def parse_args() -> argparse.Namespace:
         help="Force Probe Steering rows to report this specific layer.",
     )
     parser.add_argument(
-        "--uucs-layer",
+        "--uccs-layer",
         type=int,
         default=None,
-        help="Force UUCS rows to report this specific layer.",
+        help="Force UCCS rows to report this specific layer.",
     )
     parser.add_argument(
         "--latest-per-experiment",
@@ -177,8 +177,8 @@ def parse_method_name(name: str) -> tuple[str, str]:
             lambda val: f"Layer={int(val)}",
         ),
         (
-            r"uucs_layer(\d+)",
-            "uucs_layer",
+            r"uccs_layer(\d+)",
+            "uccs_layer",
             lambda val: f"Layer={int(val)}",
         ),
     ]
@@ -610,7 +610,7 @@ def main() -> None:
     aggregated = aggregate_summary(summary_store)
     forced = {
         "probe_layer": args.probe_layer,
-        "uucs_layer": args.uucs_layer,
+        "uccs_layer": args.uccs_layer,
     }
     forced = {k: v for k, v in forced.items() if v is not None}
     best_map = compute_best_parameters(

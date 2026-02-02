@@ -144,7 +144,7 @@ def build_base_methods() -> list[tuple[str, list[str]]]:
             )
         )
 
-    # UUCS (contrastive layer) sweep over layers 0-26
+    # UCCS (contrastive layer) sweep over layers 0-26
     for layer in range(27):
         methods.append(
             (

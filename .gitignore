@@ -9,7 +9,11 @@ notebooks/
 scripts/job/
 logs/
 results/
-docs/
+!docs/
+
+
+data/ablate
+data/raw
 
 .DS_Store
 
