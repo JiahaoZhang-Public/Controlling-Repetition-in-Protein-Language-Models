@@ -129,6 +129,42 @@ def build_methods() -> list[tuple[str, list[str]]]:
                     "methods=control",
                     f"generation.uncond.overrides.resample_ratio={ratio}",
                     f"generation.prefix.overrides.resample_ratio={ratio}",
+            ],
+        )
+    )
+
+    # Neuron deactivation (NeuronTopK)
+    for topk in [8, 64, 256, 1024, 4096]:
+        methods.append(
+            (
+                f"neuron_deactivation_{topk}",
+                [
+                    "methods=neuron_topk",
+                    f"methods.topk={topk}",
+                ],
+            )
+        )
+
+    # UUCS (contrastive layer) sweep over 33 layers
+    for layer in range(33):
+        methods.append(
+            (
+                f"uucs_layer{layer:02d}",
+                [
+                    "methods=contrastive_layer",
+                    f"methods.layer={layer}",
+                ],
+            )
+        )
+
+    # Probe steering sweep over 33 layers
+    for layer in range(33):
+        methods.append(
+            (
+                f"probe_layer{layer:02d}",
+                [
+                    "methods=probe_layer",
+                    f"methods.layer={layer}",
                 ],
             )
         )

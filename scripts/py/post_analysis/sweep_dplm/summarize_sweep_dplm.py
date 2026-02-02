@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Summarize ProGen2-style sweeps, selecting the best parameter per method."""
+"""Summarize DPLM-style sweeps, selecting the best parameter per method."""
 
 from __future__ import annotations
 
@@ -30,8 +30,8 @@ SUMMARY_FIELDS = [
 CONDITION_LABELS = {"unconditional": "Unconditional", "conditional": "Conditional"}
 CONDITIONS = ("unconditional", "conditional")
 
-DEFAULT_LATEX_CAPTION = "ProGen2 sweep results for two tasks with utility constraint."
-DEFAULT_LATEX_LABEL = "tab:progen2-sweep"
+DEFAULT_LATEX_CAPTION = "DPLM sweep results for two tasks with utility constraint."
+DEFAULT_LATEX_LABEL = "tab:dplm-sweep"
 DEFAULT_LATEX_NOTES = (
     r"\footnotesize \emph{Notes.} $R$: repetition score; $U$: biological utility. Cells marked with \good{} satisfy the utility constraint relative to the Original Model."
 )
@@ -39,26 +39,26 @@ DEFAULT_LATEX_NOTES = (
 METHOD_CONFIG = {
     "control": {"label": "Original Model"},
     "temperature": {"label": "Temperature"},
-    "top_p": {"label": "Top-p Sampling"},
-    "no_repeat_ngram": {"label": "No Repeat N-gram"},
-    "repetition_penalty": {"label": "Repetition Penalty"},
+    "sampling": {"label": "Sampling Strategy"},
+    "disable_resample": {"label": "Disable Resample"},
+    "resample_ratio": {"label": "Resample Ratio"},
     "neuron_deactivation": {"label": "Neuron Deactivation"},
     "probe_layer": {"label": "Probe Steering"},
-    "uccs_layer": {"label": "UCCS"},
+    "uucs_layer": {"label": "UUCS"},
 }
 METHOD_ORDER = [
     "control",
     "temperature",
-    "top_p",
-    "no_repeat_ngram",
-    "repetition_penalty",
+    "sampling",
+    "disable_resample",
+    "resample_ratio",
     "neuron_deactivation",
     "probe_layer",
-    "uccs_layer",
+    "uucs_layer",
 ]
 
-RUN_PATTERN = re.compile(r"seed_(?P<seed>\d+)_method_(?P<method>.+)_dataset_(?P<dataset>.+)$")
-RUN_GLOB = "seed_*_method_*_dataset_*"
+RUN_PATTERN = re.compile(r"seed_(?P<seed>\d+)_method_(?P<method>.+)_dplm_dataset_(?P<dataset>.+)$")
+RUN_GLOB = "seed_*_method_*_dplm_dataset_*"
 
 
 class RunReference(NamedTuple):
@@ -68,13 +68,13 @@ class RunReference(NamedTuple):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Summarize ProGen2 sweep outputs, selecting the best parameter per method."
+        description="Summarize DPLM sweep outputs, selecting the best parameter per method."
     )
     parser.add_argument(
         "--root",
         type=Path,
         required=True,
-        help="Directory containing seed_*_method_*_dataset_* experiment folders.",
+        help="Directory containing seed_*_method_*_dplm_dataset_* experiment folders.",
     )
     parser.add_argument(
         "--output",
@@ -113,10 +113,10 @@ def parse_args() -> argparse.Namespace:
         help="Force Probe Steering rows to report this specific layer.",
     )
     parser.add_argument(
-        "--uccs-layer",
+        "--uucs-layer",
         type=int,
         default=None,
-        help="Force UCCS rows to report this specific layer.",
+        help="Force UUCS rows to report this specific layer.",
     )
     parser.add_argument(
         "--latest-per-experiment",
@@ -141,22 +141,30 @@ def _token_to_float(token: str) -> float | None:
         return None
 
 
+def _format_strategy(token: str) -> str:
+    parts = token.split("_")
+    if not parts:
+        return token
+    return " ".join(word.capitalize() for word in parts)
+
+
 def parse_method_name(name: str) -> tuple[str, str]:
     """Return (method_base, parameter_label)."""
     if name.startswith("control"):
         return "control", "-"
+    if name == "disable_resample":
+        return "disable_resample", "-"
     patterns = [
         (r"temperature_(.+)", "temperature", lambda val: f"T={_format_float(val)}"),
-        (r"top_p_(.+)", "top_p", lambda val: f"p={_format_float(val)}"),
         (
-            r"no_repeat_ngram_(\d+)",
-            "no_repeat_ngram",
-            lambda val: f"N={int(val)}",
+            r"sampling_(.+)",
+            "sampling",
+            lambda val: f"Strategy={_format_strategy(val)}",
         ),
         (
-            r"repetition_penalty_(.+)",
-            "repetition_penalty",
-            lambda val: f"Penalty={_format_float(val)}",
+            r"resample_ratio_(.+)",
+            "resample_ratio",
+            lambda val: f"Ratio={_format_float(val)}",
         ),
         (
             r"neuron_deactivation_(\d+)",
@@ -169,8 +177,8 @@ def parse_method_name(name: str) -> tuple[str, str]:
             lambda val: f"Layer={int(val)}",
         ),
         (
-            r"uccs_layer(\d+)",
-            "uccs_layer",
+            r"uucs_layer(\d+)",
+            "uucs_layer",
             lambda val: f"Layer={int(val)}",
         ),
     ]
@@ -183,7 +191,7 @@ def parse_method_name(name: str) -> tuple[str, str]:
             return base, name
         num = _token_to_float(token)
         if num is None:
-            return base, token
+            return base, formatter(token)
         return base, formatter(num)
     return name, "-"
 
@@ -602,9 +610,8 @@ def main() -> None:
     aggregated = aggregate_summary(summary_store)
     forced = {
         "probe_layer": args.probe_layer,
-        "uccs_layer": args.uccs_layer,
+        "uucs_layer": args.uucs_layer,
     }
-    # remove None entries to avoid forcing when unspecified
     forced = {k: v for k, v in forced.items() if v is not None}
     best_map = compute_best_parameters(
         aggregated,
@@ -620,7 +627,7 @@ def main() -> None:
             notes = args.latex_notes if args.latex_notes is not None else DEFAULT_LATEX_NOTES
             render_latex_summary(out_handle, aggregated, best_map, caption=caption, label=label, notes=notes)
         else:
-            out_handle.write("## ProGen2 Sweep Summary\n\n")
+            out_handle.write("## DPLM Sweep Summary\n\n")
             for condition in CONDITIONS:
                 header = [
                     "Dataset",
