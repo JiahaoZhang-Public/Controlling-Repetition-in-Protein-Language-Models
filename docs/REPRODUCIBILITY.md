@@ -28,7 +28,7 @@ The command below mirrors the configuration reported in the paper (UCCS/contrast
 
 ```bash
 python scripts/py/run/main_experiment.py \
-  exp.id=paper_uucs_progen2 \
+  exp.id=paper_uccs_progen2 \
   runtime.device=cuda \
   dataset=posneg \
   models=progen2_base \
@@ -54,19 +54,23 @@ This writes `<fasta>.metrics.csv` and `<fasta>.summary.json`, which can be aggre
 
 ## 4) Full sweeps used in the paper
 
-- **DPLM decoding/steering sweep** (layer/temperature/sampling/UCCS/probe): enumerate specs
+Use the sweep spec generators below to enumerate every config (layer, seed, dataset, decoding method). Each entry prints `id::override1,override2,...` and can be consumed by your launcher or SLURM array.
+
+- **ESM3 (masked)**  
+  `python scripts/py/run/sweeps/sweep_esm3.py --json > sweep_esm3.json`
+- **ESM2 (masked)**  
+  `python scripts/py/run/sweeps/sweep_esm2.py --json > sweep_esm2.json`
+- **DPLM (diffusion)**  
+  `python scripts/py/run/sweeps/sweep_dplm.py --json > sweep_dplm.json`
+- **ProGen2-Base (autoregressive)**  
+  `python scripts/py/run/sweeps/sweep_progen2_base.py --json > sweep_progen2_base.json`
+- **Cross-model decoding ablations (ESM3 + ProGen2)**  
+  `python scripts/py/run/sweeps/sweep_ablation_decoding.py --json > sweep_ablation_decoding.json`
+
+Local smoke jobs (CPU-friendly) mirror CI and are useful to sanity-check dependencies:
 
 ```bash
-python scripts/py/run/sweeps/sweep_dplm.py --json > sweep_dplm.json
-```
-
-Each JSON entry has an `id` and `overrides` array that can be fed to your own launcher (no SLURM scripts are shipped).
-
-- **Local smoke jobs** mirror CI:
-
-```bash
-scripts/sh/test/local_progen2_smoke.sh   # quick HF causal LM path
-scripts/sh/test/local_dplm_smoke.sh      # small DPLM run
+scripts/sh/test/local_uccs_smoke.sh            # tiny UCCS run across all shipped models
 scripts/sh/test/local_ablation_decoding_smoke.sh
 ```
 

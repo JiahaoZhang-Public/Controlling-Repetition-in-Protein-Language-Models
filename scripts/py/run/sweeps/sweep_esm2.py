@@ -27,8 +27,9 @@ POSITIVE_DATASETS = {
 
 # ===== negative dataset =====
 NEGATIVE_DATA = {
-    "neg_fasta": "data/neg/esm3_raw_neg.sequences.fasta",
-    "neg_metrics": "data/neg/esm3_raw_neg.metrics.csv",
+    # Use the processed ESM3 negatives bundled with the repo.
+    "neg_fasta": "data/neg/esm3_neg.fasta",
+    "neg_metrics": "data/neg/esm3_neg.metrics.csv",
 }
 
 # Base overrides shared by all experiments

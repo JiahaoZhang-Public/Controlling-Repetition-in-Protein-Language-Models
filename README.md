@@ -24,16 +24,18 @@ pip install -e .
 PYTHONPATH=src pytest -q      # optional sanity check
 ```
 
-Pinned versions live in `requirements/runtime.txt` / `pyproject.toml` (PyTorch 2.2.2, Transformers 4.38.2, Hydra 1.3.2, ESM 3.2.3).
-
 ## Reproduce the paper
 
 - **Single-run replica (UCCS on PROGEN2-Base)**  
   `python scripts/py/run/main_experiment.py exp.id=paper_uccs_progen2 runtime.device=cuda dataset=posneg models=progen2_base methods=contrastive_layer methods.layer=0 generation.uncond.n=100 generation.prefix.n=100`
 - **Metric evaluation**  
   `python scripts/py/run/evaluate_sequences.py outputs/paper_uccs_progen2/run_*/uncond.steer.fasta --structure-model esm3 --structure-device cuda`
-- **Full sweeps**  
-  `python scripts/py/run/sweeps/sweep_dplm.py --json > sweep_dplm.json` then launch with your scheduler (see `scripts/job/`).
+- **Full sweeps (paper tables)**  
+  - ESM3 (masked): `python scripts/py/run/sweeps/sweep_esm3.py --json > sweep_esm3.json`  
+  - ESM2 (masked): `python scripts/py/run/sweeps/sweep_esm2.py --json > sweep_esm2.json`  
+  - ProGen2-Base: `python scripts/py/run/sweeps/sweep_progen2_base.py --json > sweep_progen2_base.json`  
+  - DPLM: `python scripts/py/run/sweeps/sweep_dplm.py --json > sweep_dplm.json`  
+  - Decoding ablations (ESM3 + ProGen2): `python scripts/py/run/sweeps/sweep_ablation_decoding.py --json > sweep_ablation_decoding.json`
 
 More detail and determinism tips: `docs/REPRODUCIBILITY.md`.
 
@@ -64,3 +66,17 @@ These configs expose `backend_kwargs` so you can tweak tokenizer/model/generatio
 
 If you find this repository helpful, please cite our ICLR 2026 paper:  
 **Controlling Repetition in Protein Language Models**, OpenReview ID: X0QxVexIJX.
+
+BibTeX:
+
+```bibtex
+@misc{zhang2026controllingrepetitionproteinlanguage,
+  title   = {Controlling Repetition in Protein Language Models},
+  author  = {Zhang, Jiahao and Zhang, Zeqing and Wang, Di and Hu, Lijie},
+  year    = {2026},
+  eprint  = {2602.00782},
+  archivePrefix = {arXiv},
+  primaryClass  = {q-bio.BM},
+  url     = {https://arxiv.org/abs/2602.00782}
+}
+```

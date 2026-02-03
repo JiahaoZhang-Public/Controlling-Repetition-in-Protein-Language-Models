@@ -1,4 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+"""
+Enumerate decoding/steering sweeps for the ESM3 model.
+
+Usage:
+  python scripts/py/run/sweeps/sweep_esm3.py          # print all specs
+  python scripts/py/run/sweeps/sweep_esm3.py --index 0  # single spec
+  python scripts/py/run/sweeps/sweep_esm3.py --json     # JSON dump
+"""
 from __future__ import annotations
 
 import argparse
@@ -9,7 +17,7 @@ from collections.abc import Iterable
 SEEDS = [0, 1, 2, 3, 4]
 DATASETS = ["cath", "uniref50", "scop"]
 
-# ===== positive datasets for progen2_base =====
+# ===== positive datasets =====
 POSITIVE_DATASETS = {
     "cath": {
         "pos_fasta": "data/pos/cath.fa",
@@ -25,21 +33,24 @@ POSITIVE_DATASETS = {
     },
 }
 
-# ===== negative dataset for progen2_base=====
+# ===== negative dataset =====
 NEGATIVE_DATA = {
-    # Use the packaged ProGen2 negatives shipped in data/neg
-    "neg_fasta": "data/neg/progen2_neg.fasta",
-    "neg_metrics": "data/neg/progen2_neg.metrics.csv",
+    "neg_fasta": "data/neg/esm3_neg.fasta",
+    "neg_metrics": "data/neg/esm3_neg.metrics.csv",
 }
 
-# ===== base generation setup =====
+# ESM3-open has 48 transformer blocks.
+ESM3_NUM_LAYERS = 48
+
+# Base overrides shared by all experiments
 BASE_OVERRIDES = [
-    "models=progen2_base",
+    "models=esm3",
+    "runtime.device=cuda",
     "generation.uncond.n=100",
     "generation.prefix.n=100",
     "split.train=100",
     "split.test=100",
-    # should be larger than train+test since train and test are selected from the pool
+    # should be larger than train+test since train/test are sampled from this pool
     "dataset.opt.target_per_side=1000",
     "generation.uncond.length_min=50",
     "generation.uncond.length_max=512",
@@ -49,13 +60,11 @@ BASE_OVERRIDES = [
 
 def _float_label(val: float, digits: int = 2) -> str:
     text = f"{val:.{digits}f}".rstrip("0").rstrip(".")
-    if not text:
-        text = "0"
-    return text
+    return text.replace(".", "p") if text else "0"
 
 
 def _normalize_overrides(overrides: Iterable[str]) -> list[str]:
-    """If the key is *.overrides.* and does not start with '+', add '+' (Hydra's append semantic)."""
+    """Hydra uses '+' to append list entries (overrides.*). Ensure we add it where needed."""
     processed: list[str] = []
     for ov in overrides:
         if ".overrides." in ov and not ov.startswith("+"):
@@ -65,75 +74,75 @@ def _normalize_overrides(overrides: Iterable[str]) -> list[str]:
     return processed
 
 
-def build_base_methods() -> list[tuple[str, list[str]]]:
+def build_methods() -> list[tuple[str, list[str]]]:
     methods: list[tuple[str, list[str]]] = []
 
-    # Control baseline
+    # ----- Control baseline -----
     methods.append(
         (
-            "control_default",
+            "control",
             [
                 "methods=control",
             ],
         )
     )
 
-    # Temperature sweep
-    for val in [0.7, 1.0, 1.3]:
-        label = _float_label(val).replace(".", "p")
+    # ----- Temperature sweep -----
+    for temp in [0.7, 1.0, 1.3]:
+        label = _float_label(temp)
         methods.append(
             (
                 f"temperature_{label}",
                 [
                     "methods=control",
-                    f"generation.uncond.overrides.temperature={val}",
-                    f"generation.prefix.overrides.temperature={val}",
+                    f"generation.uncond.overrides.temperature={temp}",
+                    f"generation.prefix.overrides.temperature={temp}",
                 ],
             )
         )
 
-    # Top-p sampling sweep
-    for val in [0.80, 0.85, 0.90, 0.95, 0.98, 1.00]:
-        label = _float_label(val, digits=2).replace(".", "p")
+    # ----- Top-p sweep -----
+    for top_p in [0.80, 0.85, 0.90, 0.95, 0.98, 1.00]:
+        label = _float_label(top_p, digits=2)
         methods.append(
             (
                 f"top_p_{label}",
                 [
                     "methods=control",
-                    f"generation.uncond.overrides.top_p={val}",
-                    f"generation.prefix.overrides.top_p={val}",
+                    f"generation.uncond.overrides.top_p={top_p}",
+                    f"generation.prefix.overrides.top_p={top_p}",
                 ],
             )
         )
 
-    # No repeat n-gram constraint
-    for size in [2, 3, 4]:
+    # ----- No repeat n-gram -----
+    for ngram in [2, 3, 4]:
         methods.append(
             (
-                f"no_repeat_ngram_{size}",
+                f"no_repeat_ngram_{ngram}",
                 [
                     "methods=control",
-                    f"generation.uncond.overrides.no_repeat_ngram_size={size}",
-                    f"generation.prefix.overrides.no_repeat_ngram_size={size}",
+                    f"generation.uncond.overrides.no_repeat_ngram_size={ngram}",
+                    f"generation.prefix.overrides.no_repeat_ngram_size={ngram}",
                 ],
             )
         )
 
-    # Repetition penalty sweep
-    for val in [1.1, 1.2, 1.3]:
-        label = _float_label(val, digits=2).replace(".", "p")
+    # ----- Repetition penalty -----
+    for penalty in [1.1, 1.2, 1.3]:
+        label = _float_label(penalty, digits=2)
         methods.append(
             (
                 f"repetition_penalty_{label}",
                 [
                     "methods=control",
-                    f"generation.uncond.overrides.repetition_penalty={val}",
-                    f"generation.prefix.overrides.repetition_penalty={val}",
+                    f"generation.uncond.overrides.repetition_penalty={penalty}",
+                    f"generation.prefix.overrides.repetition_penalty={penalty}",
                 ],
             )
         )
 
-    # Neuron deactivation (NeuronTopK)
+    # ----- Neuron deactivation -----
     for topk in [8, 64, 256, 1024, 4096]:
         methods.append(
             (
@@ -145,25 +154,25 @@ def build_base_methods() -> list[tuple[str, list[str]]]:
             )
         )
 
-    # UCCS (contrastive layer) sweep over layers 0-26
-    for layer in range(27):
+    # ----- Probe steering across all layers -----
+    for layer in range(ESM3_NUM_LAYERS):
         methods.append(
             (
-                f"uccs_layer{layer:02d}",
+                f"probe_layer_{layer:02d}",
                 [
-                    "methods=contrastive_layer",
+                    "methods=probe_layer",
                     f"methods.layer={layer}",
                 ],
             )
         )
 
-    # Probe steering sweep over layers 0-26
-    for layer in range(27):
+    # ----- UCCS (contrastive layer) across all layers -----
+    for layer in range(ESM3_NUM_LAYERS):
         methods.append(
             (
-                f"probe_layer{layer:02d}",
+                f"uccs_layer_{layer:02d}",
                 [
-                    "methods=probe_layer",
+                    "methods=contrastive_layer",
                     f"methods.layer={layer}",
                 ],
             )
@@ -173,10 +182,8 @@ def build_base_methods() -> list[tuple[str, list[str]]]:
 
 
 def _dataset_overrides(dataset: str) -> list[str]:
-    """Inject the positive and negative sample file paths into the dataset.* overrides."""
     if dataset not in POSITIVE_DATASETS:
         raise KeyError(f"Unknown dataset '{dataset}'. Known: {list(POSITIVE_DATASETS)}")
-
     pos = POSITIVE_DATASETS[dataset]
     neg = NEGATIVE_DATA
     return [
@@ -188,40 +195,31 @@ def _dataset_overrides(dataset: str) -> list[str]:
 
 
 def build_experiments() -> list[dict[str, object]]:
-    """
-    Expand on (seed * dataset * method):
-      id: seed_{seed}_method_{method}_dataset_{dataset}
-      overrides: BASE_OVERRIDES + runtime + dataset_paths + method_overrides
-    """
-    exps: list[dict[str, object]] = []
-    methods = build_base_methods()
-
+    experiments: list[dict[str, object]] = []
+    methods = build_methods()
     for dataset in DATASETS:
         for seed in SEEDS:
             for method_name, method_overrides in methods:
-                exp_id = f"seed_{seed}_method_{method_name}_progen2_dataset_{dataset}"
-
+                exp_id = f"seed_{seed}_method_{method_name}_dataset_{dataset}"
                 overrides = (
                     BASE_OVERRIDES
-                    + [f"runtime.seed={seed}", "runtime.device=cuda"]
+                    + [f"runtime.seed={seed}"]
                     + _dataset_overrides(dataset)
                     + method_overrides
                 )
-
-                exps.append(
+                experiments.append(
                     {
                         "id": exp_id,
                         "overrides": _normalize_overrides(overrides),
                     }
                 )
-
-    return exps
+    return experiments
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Enumerate steering experiments.")
+    parser = argparse.ArgumentParser(description="Enumerate ESM3 steering/decoding sweep experiments.")
     parser.add_argument("--index", type=int, default=None, help="Return a single spec by index.")
-    parser.add_argument("--json", action="store_true", help="Dump the entire sweep as JSON.")
+    parser.add_argument("--json", action="store_true", help="Dump every experiment as JSON.")
     args = parser.parse_args()
 
     experiments = build_experiments()

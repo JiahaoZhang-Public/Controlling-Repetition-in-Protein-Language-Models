@@ -38,13 +38,15 @@ POSITIVE_DATASETS = {
 }
 
 ESM3_NEGATIVE = {
-    "neg_fasta": "data/neg/esm3_raw_neg.sequences.fasta",
-    "neg_metrics": "data/neg/esm3_raw_neg.metrics.csv",
+    # Use the preprocessed ESM3 negatives shipped in the repo.
+    "neg_fasta": "data/neg/esm3_neg.fasta",
+    "neg_metrics": "data/neg/esm3_neg.metrics.csv",
 }
 
 PROTGPT2_NEGATIVE = {
-    "neg_fasta": "data/neg/gpt_neg.sequences.fasta",
-    "neg_metrics": "data/neg/gpt_neg.metrics.csv",
+    # Align with the on-disk ProtGPT2 negative set.
+    "neg_fasta": "data/neg/protgpt2_neg.fasta",
+    "neg_metrics": "data/neg/protgpt2_neg.metrics.csv",
 }
 
 

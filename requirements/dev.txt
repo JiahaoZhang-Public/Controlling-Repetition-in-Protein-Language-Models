@@ -1,5 +1,5 @@
 -r runtime.txt
-black==24.10.0
-ruff==0.4.5
-pytest==7.4.4
-mypy==1.10.0
+black
+ruff
+pytest
+mypy
