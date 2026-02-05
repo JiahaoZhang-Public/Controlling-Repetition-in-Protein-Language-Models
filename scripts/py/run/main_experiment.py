@@ -26,6 +26,7 @@ import numpy as np
 import torch
 from hydra.utils import get_original_cwd, instantiate
 from omegaconf import DictConfig, OmegaConf
+from tqdm.auto import tqdm
 
 from replm.config import BackendConfig
 from replm.metrics.repetition import token_level_entropy
@@ -279,7 +280,12 @@ def main(cfg: DictConfig) -> None:
         outputs: list[SequenceRecord] = []
         with torch.no_grad():
             with _steer_context():
-                for i in range(cfg.generation.uncond.n):
+                iterator = tqdm(
+                    range(cfg.generation.uncond.n),
+                    desc="Generating (uncond)",
+                    leave=False,
+                )
+                for i in iterator:
                     length = random.randint(
                         cfg.generation.uncond.length_min, cfg.generation.uncond.length_max
                     )
@@ -293,7 +299,12 @@ def main(cfg: DictConfig) -> None:
         outputs: list[tuple[SequenceRecord, SequenceRecord]] = []
         with torch.no_grad():
             with _steer_context():
-                for src in subset:
+                iterator = tqdm(
+                    subset,
+                    desc="Generating (prefix)",
+                    leave=False,
+                )
+                for src in iterator:
                     L = len(src.sequence)
                     pref_len = max(1, int(cfg.generation.prefix.prefix_frac * L))
                     prefix = src.sequence[:pref_len]

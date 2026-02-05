@@ -23,6 +23,16 @@ MODELS=(
   dplm
 )
 
+# Filter models to run (respect SKIP_DPLM) and track progress
+RUN_MODELS=()
+for model in "${MODELS[@]}"; do
+  if [[ "${model}" == "dplm" && "${SKIP_DPLM}" == "1" ]]; then
+    continue
+  fi
+  RUN_MODELS+=("${model}")
+done
+TOTAL=${#RUN_MODELS[@]}
+
 EXTRA_OVERRIDES=(
   "runtime.device=${DEVICE}"
   "methods=contrastive_layer"
@@ -39,10 +49,6 @@ EXTRA_OVERRIDES=(
 
 run_one() {
   local model="$1"
-  if [[ "${model}" == "dplm" && "${SKIP_DPLM}" == "1" ]]; then
-    echo "[SKIP] DPLM skipped by SKIP_DPLM=1"
-    return
-  fi
 
   local exp_id="smoke_uccs_${model}"
   local cmd=(python scripts/py/run/main_experiment.py "exp.id=${exp_id}" "models=${model}")
@@ -66,8 +72,12 @@ run_one() {
   done
 }
 
-for model in "${MODELS[@]}"; do
+idx=1
+for model in "${RUN_MODELS[@]}"; do
+  echo "[${idx}/${TOTAL}] Starting ${model}"
   run_one "${model}"
+  echo "[${idx}/${TOTAL}] Finished ${model}"
+  idx=$((idx + 1))
 done
 
 echo "[INFO] UCCS smoke tests completed."

@@ -64,6 +64,8 @@ Use the sweep spec generators below to enumerate every config (layer, seed, data
   `python scripts/py/run/sweeps/sweep_dplm.py --json > sweep_dplm.json`
 - **ProGen2-Base (autoregressive)**  
   `python scripts/py/run/sweeps/sweep_progen2_base.py --json > sweep_progen2_base.json`
+- **ProtGPT2 (autoregressive)**  
+  `python scripts/py/run/sweeps/sweep_protgpt2.py --json > sweep_protgpt2.json`
 - **Cross-model decoding ablations (ESM3 + ProGen2)**  
   `python scripts/py/run/sweeps/sweep_ablation_decoding.py --json > sweep_ablation_decoding.json`
 

@@ -34,6 +34,7 @@ PYTHONPATH=src pytest -q      # optional sanity check
   - ESM3 (masked): `python scripts/py/run/sweeps/sweep_esm3.py --json > sweep_esm3.json`  
   - ESM2 (masked): `python scripts/py/run/sweeps/sweep_esm2.py --json > sweep_esm2.json`  
   - ProGen2-Base: `python scripts/py/run/sweeps/sweep_progen2_base.py --json > sweep_progen2_base.json`  
+  - ProtGPT2: `python scripts/py/run/sweeps/sweep_protgpt2.py --json > sweep_protgpt2.json`  
   - DPLM: `python scripts/py/run/sweeps/sweep_dplm.py --json > sweep_dplm.json`  
   - Decoding ablations (ESM3 + ProGen2): `python scripts/py/run/sweeps/sweep_ablation_decoding.py --json > sweep_ablation_decoding.json`
 
