@@ -1,0 +1,9 @@
+@misc{zhang2026controllingrepetitionproteinlanguage,
+  title={Controlling Repetition in Protein Language Models},
+  author={Jiahao Zhang and Zeqing Zhang and Di Wang and Lijie Hu},
+  year={2026},
+  eprint={2602.00782},
+  archivePrefix={arXiv},
+  primaryClass={q-bio.BM},
+  url={https://arxiv.org/abs/2602.00782},
+}

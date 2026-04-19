@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controlling Repetition in Protein Language Models | ICLR 2026</title>
+  <meta name="description" content="UCCS: Utility-Controlled Contrastive Steering. A training-free method that reduces pathological repetition in protein language models while preserving AlphaFold confidence. ICLR 2026." />
+  <meta name="author" content="Jiahao Zhang, Zeqing Zhang, Di Wang, Lijie Hu" />
+  <meta name="keywords" content="protein language models, ESM-3, ProtGPT2, repetition, contrastive steering, representation engineering, ICLR 2026, AlphaFold, pLDDT" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Controlling Repetition in Protein Language Models" />
+  <meta property="og:description" content="UCCS reduces pathological repetition in protein language models without retraining and without sacrificing AlphaFold confidence." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://jiahaozhang-public.github.io/Controlling-Repetition-in-Protein-Language-Models/" />
+  <meta property="og:image" content="https://jiahaozhang-public.github.io/Controlling-Repetition-in-Protein-Language-Models/assets/img/mechanism.png" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Controlling Repetition in Protein Language Models" />
+  <meta name="twitter:description" content="UCCS: utility-controlled contrastive steering for protein language models. ICLR 2026." />
+  <meta name="twitter:image" content="https://jiahaozhang-public.github.io/Controlling-Repetition-in-Protein-Language-Models/assets/img/mechanism.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- KaTeX for math -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true},{left: '$', right: '$', display: false}]});"></script>
+
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <script defer src="assets/js/main.js"></script>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="top-nav">
+  <div class="container">
+    <a class="nav-brand" href="#top">UCCS · ICLR 2026</a>
+    <ul class="nav-links">
+      <li><a href="#tldr">TL;DR</a></li>
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#method">Method</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#beyond">More</a></li>
+      <li><a href="#gallery">Gallery</a></li>
+      <li><a href="#bibtex">Cite</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header id="top" class="hero">
+  <div class="container">
+    <p class="venue-tag">ICLR&nbsp;2026 · Poster</p>
+
+    <h1 class="paper-title">Controlling Repetition in Protein Language Models</h1>
+
+    <div class="authors">
+      <span class="author"><a href="https://jiahaozhang-public.github.io/" target="_blank" rel="noopener">Jiahao Zhang</a><sup>1,*</sup></span>
+      <span class="author">Zeqing Zhang<sup>1,*</sup></span>
+      <span class="author">Di Wang<sup>2</sup></span>
+      <span class="author">Lijie Hu<sup>1,†</sup></span>
+    </div>
+    <div class="affiliations">
+      <span><sup>1</sup>&nbsp;MBZUAI</span>
+      <span><sup>2</sup>&nbsp;KAUST</span>
+      <span class="note"><sup>*</sup>&nbsp;equal contribution</span>
+      <span class="note"><sup>†</sup>&nbsp;corresponding author: <a href="mailto:lijie.hu@mbzuai.ac.ae">lijie.hu@mbzuai.ac.ae</a></span>
+    </div>
+
+    <div class="affil-logos" aria-label="Affiliation logos">
+      <img src="assets/logos/mbzuai.png" alt="MBZUAI logo" loading="lazy" />
+      <img src="assets/logos/kaust.svg" alt="KAUST logo" loading="lazy" />
+    </div>
+
+    <div class="cta">
+      <a class="btn primary" href="https://arxiv.org/abs/2602.00782" target="_blank" rel="noopener">
+        <span class="btn-icon" aria-hidden="true">📄</span> Paper
+      </a>
+      <a class="btn" href="https://github.com/JiahaoZhang-Public/Controlling-Repetition-in-Protein-Language-Models" target="_blank" rel="noopener">
+        <span class="btn-icon" aria-hidden="true">&lt;/&gt;</span> Code
+      </a>
+      <a class="btn" href="poster.pdf" target="_blank" rel="noopener">
+        <span class="btn-icon" aria-hidden="true">🖼</span> Poster (PDF)
+      </a>
+      <a class="btn" href="#bibtex">
+        <span class="btn-icon" aria-hidden="true">❞</span> BibTeX
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ TL;DR ============ -->
+<section id="tldr" class="section tldr">
+  <div class="container">
+    <h2 class="section-title">TL;DR</h2>
+    <p class="lede">
+      Protein language models frequently collapse into long repeats
+      (<span class="mono">AAAAAA</span>) and short motif loops
+      (<span class="mono">AGAGAG</span>). These sequences <em>do not fold</em>.
+      We quantify this failure, and introduce <strong>UCCS</strong> —
+      <em>Utility-Controlled Contrastive Steering</em> — a training-free method
+      that reduces repetition while <strong>simultaneously raising</strong>
+      AlphaFold confidence across ESM-3 and ProtGPT2.
+    </p>
+
+    <div class="takehome-grid">
+      <div class="takehome">
+        <div class="tag">01</div>
+        <h3>Repetition is a <em>structural</em> failure</h3>
+        <p>Motif-level and homopolymer collapse in PLMs tracks AlphaFold pLDDT, not just token diversity.</p>
+      </div>
+      <div class="takehome">
+        <div class="tag">02</div>
+        <h3>Decoding penalties are not enough</h3>
+        <p>Temperature, top-p, and repetition-penalty either barely move repetition or lower foldability.</p>
+      </div>
+      <div class="takehome">
+        <div class="tag">03</div>
+        <h3>Utility-matched contrastive steering wins</h3>
+        <p>UCCS is the only method that improves both repetition and utility on all tested datasets and models.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROBLEM ============ -->
+<section id="problem" class="section problem">
+  <div class="container">
+    <h2 class="section-title">The problem: PLMs repeat, and repetition breaks folding</h2>
+    <p class="section-lede">
+      Raw ESM-3 / ProtGPT2 generations often collapse into low-complexity sequences that <strong>AlphaFold cannot confidently fold</strong>. Natural proteins (top row) vs. unmodified model outputs (bottom rows). Color = per-residue pLDDT (blue ≈ 100, orange/red &lt; 50).
+    </p>
+
+    <div class="problem-grid">
+      <div class="problem-row">
+        <div class="row-label natural">Natural<br/>proteins</div>
+        <figure><img src="assets/img/problem/cath_natural_128.png" alt="Natural CATH protein, 128 residues, high pLDDT throughout" loading="lazy" /><figcaption>CATH · 128 aa</figcaption></figure>
+        <figure><img src="assets/img/problem/cath_natural_256.png" alt="Natural CATH protein, 256 residues" loading="lazy" /><figcaption>CATH · 256 aa</figcaption></figure>
+        <figure><img src="assets/img/problem/cath_natural_513.png" alt="Natural CATH protein, 513 residues" loading="lazy" /><figcaption>CATH · 513 aa</figcaption></figure>
+      </div>
+      <div class="problem-row">
+        <div class="row-label failure">ESM-3<br/>raw output</div>
+        <figure><img src="assets/img/problem/esm3_raw_126.png" alt="ESM-3 raw output, 126 residues, orange/red low pLDDT regions" loading="lazy" /><figcaption>ESM-3 · 126 aa</figcaption></figure>
+        <figure><img src="assets/img/problem/esm3_raw_256.png" alt="ESM-3 raw output, 256 residues" loading="lazy" /><figcaption>ESM-3 · 256 aa</figcaption></figure>
+        <figure><img src="assets/img/problem/esm3_raw_512.png" alt="ESM-3 raw output, 512 residues" loading="lazy" /><figcaption>ESM-3 · 512 aa</figcaption></figure>
+      </div>
+      <div class="problem-row">
+        <div class="row-label failure">ProtGPT2<br/>raw output</div>
+        <figure><img src="assets/img/problem/protgpt2_raw_128.png" alt="ProtGPT2 raw output, 128 residues" loading="lazy" /><figcaption>ProtGPT2 · 128 aa</figcaption></figure>
+        <figure><img src="assets/img/problem/protgpt2_raw_256.png" alt="ProtGPT2 raw output, 256 residues" loading="lazy" /><figcaption>ProtGPT2 · 256 aa</figcaption></figure>
+        <figure><img src="assets/img/problem/protgpt2_raw_511.png" alt="ProtGPT2 raw output, 511 residues" loading="lazy" /><figcaption>ProtGPT2 · 511 aa</figcaption></figure>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="metric-box">
+        <h4>Repetition score <span class="mono">R(x)</span></h4>
+        <ul>
+          <li><span class="mono">H<sub>norm</sub></span> — normalized unigram entropy (global balance)</li>
+          <li><span class="mono">Distinct-2/3</span> — 2-/3-gram diversity (motif loops)</li>
+          <li><span class="mono">R<sub>hpoly</sub></span> — homopolymer penalty (runs ≥ 4)</li>
+        </ul>
+        <p class="axis-note">Higher&nbsp;<span class="mono">R(x)</span>&nbsp;= less repetitive.</p>
+      </div>
+      <div class="metric-box accent">
+        <h4>Utility <span class="mono">U(x)</span></h4>
+        <p>AlphaFold-derived structural confidence:</p>
+        <p class="formula">$U(x) \;=\; \tfrac{1}{2}\bigl(\mathrm{pLDDT}(x) + \mathrm{pTM}(x)\bigr)$</p>
+        <p class="axis-note">Higher&nbsp;<span class="mono">U(x)</span>&nbsp;= more confident fold.</p>
+      </div>
+    </div>
+
+    <div class="callout amber">
+      <p><strong>The core obstacle.</strong> On real datasets, low-repetition and
+      high-utility are <em>entangled</em>. Naively steering "away from repetition"
+      usually also pushes the model away from foldability — because the direction
+      you learn from raw contrastive data is a mixture of both.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ METHOD ============ -->
+<section id="method" class="section method">
+  <div class="container">
+    <h2 class="section-title">Method — UCCS</h2>
+    <p class="section-lede">
+      UCCS builds contrastive sets that are <strong>matched in utility</strong> and
+      <strong>separated in repetition</strong>, so the mean-difference vector
+      isolates a pure "repetition direction" in hidden space.
+    </p>
+
+    <figure class="method-figure">
+      <img src="assets/img/mechanism.png" alt="UCCS pipeline: score candidates by (R,U); filter to a utility band; contrastive selection maximizing ΔR with ΔU bounded; compute steering vector v^L; inject at inference." />
+      <figcaption>
+        (a) Score a candidate pool by $(R, U)$.
+        (b) Filter to a utility band and maximise $\Delta R$ subject to $\Delta U \le \epsilon$ (Pareto / composite ranking).
+        (c) Take the mean-difference vector $v^L = \mathbb{E}_{x \in \mathcal{D}^+}[\phi^L(x)] - \mathbb{E}_{x \in \mathcal{D}^-}[\phi^L(x)]$ at a chosen layer.
+        (d) At inference, inject $\tilde h^L = h^L + \alpha \, v^L$.
+      </figcaption>
+    </figure>
+
+    <div class="two-col">
+      <div class="formula-block">
+        <h4>Formulation</h4>
+        <p class="formula">$$\min_{f}\; R\!\left(f(M, p)\right) \quad \text{s.t.}\quad U\!\left(f(M, p)\right) \;\ge\; U(M, p) - \epsilon$$</p>
+        <p class="caption">
+          We do not retrain $M$. Instead we modify its forward pass by adding a fixed direction to hidden activations at a chosen layer.
+        </p>
+      </div>
+      <div class="formula-block">
+        <h4>Representation <span class="mono">&phi;<sup>L</sup></span></h4>
+        <p class="formula">
+        $$\phi^L(x) \;=\;
+        \begin{cases}
+          \tfrac{1}{T}\sum_{t=1}^T h^L_t(x) & \text{MLM (ESM-3, mean pool)}\\[4pt]
+          h^L_T(x) & \text{AR-LM (ProtGPT2, last token)}
+        \end{cases}$$</p>
+        <p class="caption">
+          MLMs encode bidirectionally, so mean-pool; AR-LMs concentrate predictive information at the last token.
+        </p>
+      </div>
+    </div>
+
+    <div class="component-tiles">
+      <div class="component">
+        <h4>Dataset construction</h4>
+        <p>Pareto or composite selection over ~10 k candidates → ~100 matched pairs. <strong>Utility matching</strong> is what makes the steering direction clean.</p>
+      </div>
+      <div class="component">
+        <h4>Strength <span class="mono">α</span></h4>
+        <p>Default $\alpha = 1$. Unimodal across $[0.5, 4]$. Larger $\alpha$ emphasises $R$; smaller $\alpha$ protects $U$.</p>
+      </div>
+      <div class="component">
+        <h4>Injection layer <span class="mono">L</span></h4>
+        <p>Late layers work best. ESM-3: $L \approx 46/48$. ProtGPT2: $L \approx 30/36$. Early-layer injection is inert or harmful.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section id="results" class="section results">
+  <div class="container">
+    <h2 class="section-title">Main results</h2>
+    <p class="section-lede">
+      Across CATH, UniRef50 and SCOP, on both ESM-3 (MLM) and ProtGPT2 (AR-LM),
+      <strong>UCCS is the only method that improves both</strong> repetition $R$
+      <em>and</em> utility $U$ relative to the unmodified baseline.
+    </p>
+
+    <div class="tabs" role="tablist" aria-label="Main results per model">
+      <button class="tab active" role="tab" aria-selected="true" data-target="tab-esm3">ESM-3 (MLM)</button>
+      <button class="tab" role="tab" aria-selected="false" data-target="tab-protgpt2">ProtGPT2 (AR-LM)</button>
+    </div>
+
+    <div class="tab-panels">
+      <div class="tab-panel active" id="tab-esm3" role="tabpanel">
+        <div class="result-grid">
+          <figure class="result-figure">
+            <img src="assets/img/scatter/esm3_cath_uncond.png" alt="R vs U scatter for ESM-3 on CATH, unconditional generation, showing UCCS in the top-right quadrant above all baselines." loading="lazy" />
+            <figcaption>ESM-3 · CATH · unconditional. UCCS (top-right) is the only method above both $R_{\mathrm{orig}}$ and $U_{\mathrm{orig}}$.</figcaption>
+          </figure>
+          <div class="result-highlights">
+            <div class="delta">
+              <span class="delta-val">+52 %</span>
+              <span class="delta-label">repetition score $R$</span>
+              <span class="delta-note">0.423 → 0.645</span>
+            </div>
+            <div class="delta">
+              <span class="delta-val up">+13 %</span>
+              <span class="delta-label">utility $U$</span>
+              <span class="delta-note">0.576 → 0.652</span>
+            </div>
+            <p class="result-note">Temperature sampling raises $R$ to 0.751 but drops $U$ to 0.566 — the trade-off UCCS breaks.</p>
+          </div>
+        </div>
+
+        <table class="mini-table">
+          <thead>
+            <tr><th>Method</th><th>R ↑</th><th>U ↑</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Original (no intervention)</td><td>0.423</td><td>0.576 <span class="check">✓</span></td></tr>
+            <tr><td>Temperature sampling</td><td>0.751</td><td>0.566</td></tr>
+            <tr><td>Top-p sampling</td><td>0.419</td><td>0.590 <span class="check">✓</span></td></tr>
+            <tr><td>Entropy-based sampling</td><td><strong>0.904</strong></td><td>0.477</td></tr>
+            <tr><td>Neuron deactivation</td><td>0.551</td><td>0.507</td></tr>
+            <tr><td>Probe steering</td><td>0.415</td><td>0.587 <span class="check">✓</span></td></tr>
+            <tr class="highlight"><td><strong>UCCS (ours)</strong></td><td><strong>0.645</strong></td><td><strong>0.652 <span class="check">✓</span></strong></td></tr>
+          </tbody>
+          <caption>ESM-3, CATH, unconditional. ✓ marks $U \ge U_{\mathrm{orig}}$.</caption>
+        </table>
+      </div>
+
+      <div class="tab-panel" id="tab-protgpt2" role="tabpanel" hidden>
+        <div class="result-grid">
+          <figure class="result-figure">
+            <img src="assets/img/scatter/protgpt2_cath_uncond.png" alt="R vs U scatter for ProtGPT2 on CATH, unconditional generation, with UCCS above all baselines on both axes." loading="lazy" />
+            <figcaption>ProtGPT2 · CATH · unconditional. Same pattern: UCCS sits outside the Pareto frontier of the baselines.</figcaption>
+          </figure>
+          <div class="result-highlights">
+            <div class="delta">
+              <span class="delta-val">+16 %</span>
+              <span class="delta-label">repetition score $R$</span>
+              <span class="delta-note">0.728 → 0.845</span>
+            </div>
+            <div class="delta">
+              <span class="delta-val up">+14 %</span>
+              <span class="delta-label">utility $U$</span>
+              <span class="delta-note">0.621 → 0.711</span>
+            </div>
+            <p class="result-note">Repetition-penalty and n-gram blocking barely move $R$ and do not help $U$.</p>
+          </div>
+        </div>
+
+        <table class="mini-table">
+          <thead>
+            <tr><th>Method</th><th>R ↑</th><th>U ↑</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Original (no intervention)</td><td>0.728</td><td>0.621 <span class="check">✓</span></td></tr>
+            <tr><td>Temperature sampling</td><td>0.756</td><td>0.612</td></tr>
+            <tr><td>Top-p sampling</td><td>0.714</td><td>0.608</td></tr>
+            <tr><td>No-repeat n-gram</td><td>0.736</td><td>0.613</td></tr>
+            <tr><td>Repetition penalty</td><td>0.780</td><td>0.622 <span class="check">✓</span></td></tr>
+            <tr><td>Neuron deactivation</td><td>0.719</td><td>0.610</td></tr>
+            <tr><td>Probe steering</td><td>0.722</td><td>0.607</td></tr>
+            <tr class="highlight"><td><strong>UCCS (ours)</strong></td><td><strong>0.845</strong></td><td><strong>0.711 <span class="check">✓</span></strong></td></tr>
+          </tbody>
+          <caption>ProtGPT2, CATH, unconditional. ✓ marks $U \ge U_{\mathrm{orig}}$.</caption>
+        </table>
+      </div>
+    </div>
+
+    <p class="section-footnote">
+      Same pattern holds for UniRef50 and SCOP, and for conditional (prefix-10) generation — see the paper's Tables 1 and 2 for all 12 settings.
+    </p>
+  </div>
+</section>
+
+<!-- ============ ABLATIONS ============ -->
+<section id="ablations" class="section ablations">
+  <div class="container">
+    <h2 class="section-title">Ablations — the three knobs</h2>
+
+    <details class="accordion" open>
+      <summary><span class="ax-num">A.</span> Utility-matched dataset sampling</summary>
+      <div class="accordion-body">
+        <p>Pareto and composite selection beat random sampling — both lift $R$ and $U$ and shrink variance across seeds. Without utility matching, the mean-difference vector absorbs foldability signal too, and UCCS collapses to a decoding-penalty-like trade-off.</p>
+      </div>
+    </details>
+
+    <details class="accordion">
+      <summary><span class="ax-num">B.</span> Steering strength <span class="mono">α</span></summary>
+      <div class="accordion-body">
+        <div class="two-col">
+          <figure>
+            <img src="assets/img/scatter/esm3_alpha_ablation.png" alt="ESM-3 alpha ablation: unimodal curve peaking near alpha=1-2" loading="lazy" />
+            <figcaption>ESM-3</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/img/scatter/protgpt2_alpha_ablation.png" alt="ProtGPT2 alpha ablation" loading="lazy" />
+            <figcaption>ProtGPT2</figcaption>
+          </figure>
+        </div>
+        <p>$\alpha$ is clearly unimodal in $[0.5, 4]$. Default $\alpha = 1$ gives the best $R$–$U$ harmonic mean. Conditional generation is noticeably more robust — a wider flat top.</p>
+      </div>
+    </details>
+
+    <details class="accordion">
+      <summary><span class="ax-num">C.</span> Injection layer <span class="mono">L</span></summary>
+      <div class="accordion-body">
+        <div class="two-col">
+          <figure>
+            <img src="assets/img/scatter/esm3_layer_ablation.png" alt="ESM-3 layer ablation: late layers win" loading="lazy" />
+            <figcaption>ESM-3 (48 layers)</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/img/scatter/protgpt2_layer_ablation.png" alt="ProtGPT2 layer ablation" loading="lazy" />
+            <figcaption>ProtGPT2 (36 layers)</figcaption>
+          </figure>
+        </div>
+        <p>Injection in early layers is inert or harmful; late-layer injection (ESM-3 ≈ L46/48; ProtGPT2 ≈ L30/36) is monotonic-improving up to the penultimate layer — consistent with repetition features concentrating late in depth.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ============ BEYOND MAIN PAPER ============ -->
+<section id="beyond" class="section beyond">
+  <div class="container">
+    <h2 class="section-title">Beyond the main paper</h2>
+    <p class="section-lede">
+      The appendix extends the study with (i) two additional protein language models spanning a new generation paradigm, and (ii) an initial mechanistic analysis of where "repetition" lives inside PLM activations.
+    </p>
+
+    <h3 class="subsection-title">Extra models — autoregressive and diffusion</h3>
+    <div class="two-col">
+      <div class="extra-model">
+        <div class="extra-header">
+          <span class="extra-tag">ProGen2-base</span>
+          <span class="extra-kind">autoregressive</span>
+        </div>
+        <p>
+          Same baselines as ProtGPT2 (temperature, top-$p$, no-repeat-$n$-gram, repetition penalty). Across CATH / UniRef50 / SCOP, decoding heuristics barely move $R$ in the unconditional setting, while UCCS delivers consistent gains and is the <strong>only method satisfying the utility constraint across every condition</strong>. The latent repetition direction generalises to ProGen2's distinct architecture and training corpus.
+        </p>
+      </div>
+      <div class="extra-model">
+        <div class="extra-header">
+          <span class="extra-tag">DPLM-650M</span>
+          <span class="extra-kind">diffusion</span>
+        </div>
+        <p>
+          A completely different generation mechanism. We sweep diffusion-specific knobs (sampling strategy, resample ratio, internal-resample on/off) — they trade $R$ and $U$ in unstable ways. UCCS still wins: $R = 0.863\text{–}0.879$ (unconditional) and $0.881\text{–}0.894$ (conditional), with $U$ improved over the original model. The method transfers <strong>across AR, MLM, <em>and</em> diffusion PLMs</strong>.
+        </p>
+      </div>
+    </div>
+
+    <h3 class="subsection-title">Where does repetition live? — initial mechanism analysis</h3>
+
+    <div class="mech-grid">
+      <div class="mech-card">
+        <h4>Neuron-level correlation</h4>
+        <p>Pearson correlation between each neuron's activation and the repetition score, across all layers. Distributions are centered near zero with <strong>no isolated high-correlation outliers</strong> — repetition is <em>not</em> driven by a small set of specialised units.</p>
+        <p class="mech-takeaway"><strong>Takeaway.</strong> Repetition is a distributed representational pattern → aligns with a <em>direction/subspace</em> in activation space, not individual neurons. This is exactly the object UCCS isolates via the mean-difference vector.</p>
+        <div class="two-col">
+          <figure><img src="assets/img/scatter/neuron_esm3.png" alt="ESM-3 neuron-repetition correlation histogram across layers; bimodal in several layers" loading="lazy" /><figcaption>ESM-3 — broader, often bimodal</figcaption></figure>
+          <figure><img src="assets/img/scatter/neuron_protgpt2.png" alt="ProtGPT2 neuron-repetition correlation histogram; narrow and unimodal" loading="lazy" /><figcaption>ProtGPT2 — narrower, unimodal</figcaption></figure>
+        </div>
+        <p class="mech-note">ESM-3's broader, more polarised distribution matches its empirically more severe repetition: <em>architecture modulates the strength of the repetition subspace.</em></p>
+      </div>
+
+      <div class="mech-card">
+        <h4>Layer-wise linear probes</h4>
+        <p>Linear probes trained to predict the repetition score from hidden activations at each layer. Probe performance grows sharply in later layers — the model's <strong>late-layer geometry encodes repetition most explicitly</strong>.</p>
+        <p class="mech-takeaway"><strong>Takeaway.</strong> Same layers that probes find most informative are the layers where UCCS injection works best (ESM-3 $L \approx 46$, ProtGPT2 $L \approx 30$). The ablation in §Ablations is not a coincidence — it's consistent with the representational geometry.</p>
+        <div class="two-col">
+          <figure><img src="assets/img/scatter/probe_esm3.png" alt="ESM-3 layer-wise probe metrics, rising in late layers" loading="lazy" /><figcaption>ESM-3</figcaption></figure>
+          <figure><img src="assets/img/scatter/probe_protgpt2.png" alt="ProtGPT2 layer-wise probe metrics" loading="lazy" /><figcaption>ProtGPT2 — same pattern, weaker magnitude</figcaption></figure>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-footnote">
+      Full tables for ProGen2 / DPLM and detailed mechanism figures are in the paper appendix.
+    </p>
+  </div>
+</section>
+
+<!-- ============ GALLERY ============ -->
+<section id="gallery" class="section gallery">
+  <div class="container">
+    <h2 class="section-title">Generated proteins with UCCS</h2>
+    <p class="section-lede">
+      Unconditional generations from ESM-3 and ProtGPT2 after UCCS injection.
+      Color = per-residue pLDDT (blue ≥ 90, cyan 70–90, orange/red &lt; 70).
+      Most cases are dominantly blue — <strong>the outputs actually fold</strong>.
+      Click any image to enlarge.
+    </p>
+
+    <div class="gallery-grid">
+      <figure class="gallery-item" data-src="assets/img/gallery/esm3_122.png" data-caption="ESM-3 · 122 aa"><img src="assets/img/gallery/esm3_122.png" alt="ESM-3 generated protein, 122 residues, mostly blue high-confidence" loading="lazy" /><figcaption>ESM-3 · 122 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/esm3_137.png" data-caption="ESM-3 · 137 aa"><img src="assets/img/gallery/esm3_137.png" alt="ESM-3 generated protein, 137 residues" loading="lazy" /><figcaption>ESM-3 · 137 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/esm3_142.png" data-caption="ESM-3 · 142 aa"><img src="assets/img/gallery/esm3_142.png" alt="ESM-3 generated protein, 142 residues" loading="lazy" /><figcaption>ESM-3 · 142 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/esm3_245.png" data-caption="ESM-3 · 245 aa"><img src="assets/img/gallery/esm3_245.png" alt="ESM-3 generated protein, 245 residues" loading="lazy" /><figcaption>ESM-3 · 245 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/esm3_253.png" data-caption="ESM-3 · 253 aa"><img src="assets/img/gallery/esm3_253.png" alt="ESM-3 generated protein, 253 residues" loading="lazy" /><figcaption>ESM-3 · 253 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/esm3_254.png" data-caption="ESM-3 · 254 aa"><img src="assets/img/gallery/esm3_254.png" alt="ESM-3 generated protein, 254 residues" loading="lazy" /><figcaption>ESM-3 · 254 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/esm3_264.png" data-caption="ESM-3 · 264 aa"><img src="assets/img/gallery/esm3_264.png" alt="ESM-3 generated protein, 264 residues" loading="lazy" /><figcaption>ESM-3 · 264 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/esm3_57.png" data-caption="ESM-3 · 57 aa"><img src="assets/img/gallery/esm3_57.png" alt="ESM-3 generated protein, 57 residues" loading="lazy" /><figcaption>ESM-3 · 57 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/esm3_70.png" data-caption="ESM-3 · 70 aa"><img src="assets/img/gallery/esm3_70.png" alt="ESM-3 generated protein, 70 residues" loading="lazy" /><figcaption>ESM-3 · 70 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/protgpt2_68.png" data-caption="ProtGPT2 · 68 aa"><img src="assets/img/gallery/protgpt2_68.png" alt="ProtGPT2 generated protein, 68 residues" loading="lazy" /><figcaption>ProtGPT2 · 68 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/protgpt2_115.png" data-caption="ProtGPT2 · 115 aa"><img src="assets/img/gallery/protgpt2_115.png" alt="ProtGPT2 generated protein, 115 residues" loading="lazy" /><figcaption>ProtGPT2 · 115 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/protgpt2_142.png" data-caption="ProtGPT2 · 142 aa"><img src="assets/img/gallery/protgpt2_142.png" alt="ProtGPT2 generated protein, 142 residues" loading="lazy" /><figcaption>ProtGPT2 · 142 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/protgpt2_236.png" data-caption="ProtGPT2 · 236 aa"><img src="assets/img/gallery/protgpt2_236.png" alt="ProtGPT2 generated protein, 236 residues" loading="lazy" /><figcaption>ProtGPT2 · 236 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/protgpt2_245.png" data-caption="ProtGPT2 · 245 aa"><img src="assets/img/gallery/protgpt2_245.png" alt="ProtGPT2 generated protein, 245 residues" loading="lazy" /><figcaption>ProtGPT2 · 245 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/protgpt2_253.png" data-caption="ProtGPT2 · 253 aa"><img src="assets/img/gallery/protgpt2_253.png" alt="ProtGPT2 generated protein, 253 residues" loading="lazy" /><figcaption>ProtGPT2 · 253 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/protgpt2_262.png" data-caption="ProtGPT2 · 262 aa"><img src="assets/img/gallery/protgpt2_262.png" alt="ProtGPT2 generated protein, 262 residues" loading="lazy" /><figcaption>ProtGPT2 · 262 aa</figcaption></figure>
+      <figure class="gallery-item" data-src="assets/img/gallery/protgpt2_72.png" data-caption="ProtGPT2 · 72 aa"><img src="assets/img/gallery/protgpt2_72.png" alt="ProtGPT2 generated protein, 72 residues" loading="lazy" /><figcaption>ProtGPT2 · 72 aa</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LIMITATIONS ============ -->
+<section id="limitations" class="section limitations">
+  <div class="container">
+    <h2 class="section-title">Limitations &amp; open questions</h2>
+    <ul class="limits">
+      <li><strong>$U$ is an AlphaFold surrogate, not wet-lab validation.</strong> We take pLDDT/pTM as a proxy for foldability; experimental validation of UCCS-generated proteins is future work.</li>
+      <li><strong>Optimal <span class="mono">α</span> and <span class="mono">L</span> are model-dependent.</strong> We provide defaults but practitioners should sweep on a small held-out pool.</li>
+      <li><strong>We evaluate on sequences ≤ 1024 residues.</strong> Long-range repetition (IDRs, low-complexity regions, phase-separation motifs) is untested — and explicitly motivating follow-up work.</li>
+      <li><strong>UCCS is a pure intervention at representation level.</strong> We do not fine-tune the model, and we do not mix with sampling-time penalties; combinations are left to future work.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ BIBTEX ============ -->
+<section id="bibtex" class="section bibtex">
+  <div class="container">
+    <h2 class="section-title">Cite</h2>
+    <div class="bibtex-wrap">
+      <pre id="bibtex-code">@misc{zhang2026controllingrepetitionproteinlanguage,
+  title={Controlling Repetition in Protein Language Models},
+  author={Jiahao Zhang and Zeqing Zhang and Di Wang and Lijie Hu},
+  year={2026},
+  eprint={2602.00782},
+  archivePrefix={arXiv},
+  primaryClass={q-bio.BM},
+  url={https://arxiv.org/abs/2602.00782},
+}</pre>
+      <button class="copy-btn" data-copy-target="bibtex-code" aria-label="Copy BibTeX to clipboard">Copy</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h4>Resources</h4>
+      <ul class="foot-links">
+        <li><a href="https://arxiv.org/abs/2602.00782" target="_blank" rel="noopener">Paper (arXiv&nbsp;2602.00782)</a></li>
+        <li><a href="https://github.com/JiahaoZhang-Public/Controlling-Repetition-in-Protein-Language-Models" target="_blank" rel="noopener">Code (GitHub)</a></li>
+        <li><a href="poster.pdf" target="_blank" rel="noopener">ICLR 2026 poster (PDF)</a></li>
+        <li><a href="https://jiahaozhang-public.github.io/" target="_blank" rel="noopener">First author homepage</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Correspondence</h4>
+      <p><a href="mailto:lijie.hu@mbzuai.ac.ae">lijie.hu@mbzuai.ac.ae</a><br/>MBZUAI, Abu Dhabi</p>
+    </div>
+    <div>
+      <h4>Scan</h4>
+      <div class="qr-strip">
+        <figure><img src="assets/qr/paper.svg" alt="QR to paper" /><figcaption>Paper</figcaption></figure>
+        <figure><img src="assets/qr/code.svg" alt="QR to code" /><figcaption>Code</figcaption></figure>
+        <figure><img src="assets/qr/homepage.svg" alt="QR to homepage" /><figcaption>Homepage</figcaption></figure>
+      </div>
+    </div>
+  </div>
+  <div class="container foot-bottom">
+    <p>© 2026 Jiahao Zhang, Zeqing Zhang, Di Wang, Lijie Hu · MBZUAI &amp; KAUST · Site last updated <span id="last-updated">2026-04-19</span>.</p>
+  </div>
+</footer>
+
+<!-- Lightbox overlay (populated by JS) -->
+<div id="lightbox" class="lightbox" hidden>
+  <button class="lightbox-close" aria-label="Close">&times;</button>
+  <img id="lightbox-img" alt="" />
+  <div id="lightbox-caption" class="lightbox-caption"></div>
+</div>
+
+</body>
+</html>

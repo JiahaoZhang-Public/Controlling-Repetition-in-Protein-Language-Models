@@ -16,7 +16,7 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License",
   "Operating System :: OS Independent",
 ]
-dynamic = ["dependencies", "optional-dependencies"]
+dynamic = ["dependencies"]
 
 [tool.setuptools]
 package-dir = { "" = "src" }
@@ -27,7 +27,6 @@ include = ["replm*"]
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements/runtime.txt"] }
-optional-dependencies = { dev = { file = ["requirements/dev.txt"] }, docs = { file = ["requirements/docs.txt"] } }
 
 [tool.black]
 line-length = 108
