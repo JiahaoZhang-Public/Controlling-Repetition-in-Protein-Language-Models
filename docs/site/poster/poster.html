@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Controlling Repetition in Protein Language Models — ICLR 2026 Poster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="poster.css">
+</head>
+<body>
+<div class="poster">
+
+  <!-- ============================================================
+       TOP BANNER
+       ============================================================ -->
+  <header class="banner">
+    <div class="banner-left">
+      <img class="logo-mbzuai" src="assets/mbzuai.png" alt="MBZUAI">
+      <img class="logo-kaust"  src="assets/kaust.svg"  alt="KAUST">
+    </div>
+
+    <div class="banner-title">
+      <h1>Controlling <span class="accent">Repetition</span> in Protein Language Models</h1>
+      <div class="authors">
+        Jiahao&nbsp;Zhang<sup>1,*</sup> &nbsp;·&nbsp;
+        Zeqing&nbsp;Zhang<sup>1,*</sup> &nbsp;·&nbsp;
+        Di&nbsp;Wang<sup>2</sup> &nbsp;·&nbsp;
+        Lijie&nbsp;Hu<sup>1,&dagger;</sup>
+      </div>
+      <div class="affil">
+        <sup>1</sup>Mohamed bin Zayed University of AI &nbsp;·&nbsp;
+        <sup>2</sup>KAUST &nbsp;·&nbsp;
+        <span class="note"><sup>*</sup>equal contribution &nbsp; <sup>&dagger;</sup>correspondence: lijie.hu@mbzuai.ac.ae</span>
+      </div>
+    </div>
+
+    <div class="banner-right">
+      <div class="iclr-pill">
+        <div class="ic">ICLR</div>
+        <div class="yr">2026</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       MAIN 3-COLUMN GRID
+       ============================================================ -->
+  <main class="body-grid">
+
+    <!-- ============ LEFT COLUMN ============ -->
+    <section class="col col-left">
+
+      <!-- ① Motivation: pLDDT strip -->
+      <article class="panel feature">
+        <div class="panel-head">
+          <span class="num">01</span>
+          <h2>Motivation — <em>Repetition Collapses the Fold</em></h2>
+        </div>
+        <div class="panel-body">
+          <p>PLMs like <b>ESM-3</b> and <b>ProtGPT2</b> generate sequences that collapse into <b>homopolymers</b> or <b>motif loops</b>. Unlike text repetition, these <em>destroy the predicted fold</em>: AlphaFold pLDDT drops from 85+ to under 50 across repetitive regions.</p>
+          <div class="strip-grid">
+            <div class="strip-card ok">
+              <img src="figs/pos_cath_256_crop-1.png" alt="CATH natural protein">
+              <div class="tag"><b>CATH</b><br/>natural · 256 aa</div>
+            </div>
+            <div class="strip-card ok">
+              <img src="figs/pos_uniprot_256_crop-1.png" alt="UniRef50 natural protein">
+              <div class="tag"><b>UniRef50</b><br/>natural · 256 aa</div>
+            </div>
+            <div class="strip-card bad">
+              <img src="figs/neg_esm3_256_crop-1.png" alt="ESM-3 generation collapsing into homopolymer">
+              <div class="tag"><b>ESM-3</b><br/>homopolymer · 256 aa</div>
+            </div>
+            <div class="strip-card bad">
+              <img src="figs/neg_protgpt2_128_crop-1.png" alt="ProtGPT2 generation with motif loop">
+              <div class="tag"><b>ProtGPT2</b><br/>motif loop · 128 aa</div>
+            </div>
+          </div>
+          <p class="caption"><b style="color:#1e6fb9">Blue</b> = pLDDT &gt; 90 (confident); <b style="color:#d46820">orange/red</b> = &lt; 70 (low). Repetitive residues fold poorly.</p>
+        </div>
+      </article>
+
+      <!-- ② Measuring repetition -->
+      <article class="panel">
+        <div class="panel-head">
+          <span class="num">02</span>
+          <h2>Measuring Repetition &middot; <em>R(x)</em> and <em>U(x)</em></h2>
+        </div>
+        <div class="panel-body">
+          <p>We unify three complementary signals into a single repetition score in&nbsp;[0,&nbsp;1] (higher&nbsp;=&nbsp;less repetition):</p>
+          <div class="metric-row">
+            <div class="metric-tile">
+              <div class="sym">H<sub>norm</sub></div>
+              <div class="desc">Token entropy, catches <b>global collapse</b>.</div>
+            </div>
+            <div class="metric-tile">
+              <div class="sym">Distinct-n</div>
+              <div class="desc">n&nbsp;=&nbsp;2,&nbsp;3 — catches <b>motif loops</b>.</div>
+            </div>
+            <div class="metric-tile">
+              <div class="sym">R<sub>hpoly</sub></div>
+              <div class="desc">Penalizes runs of&nbsp;&ge;&nbsp;4 identical residues.</div>
+            </div>
+          </div>
+          <div class="formula">
+            <b>R</b>(x) = &#8531;(H<sub>norm</sub> + &#189;(D<sub>2</sub>+D<sub>3</sub>) + R<sub>hpoly</sub>) &nbsp;<span class="op">·</span>&nbsp;
+            <b>U</b>(x) = &#189;(pLDDT&#8201;/&#8201;100 + pTM)
+          </div>
+          <p class="small muted">Across ESM-3 and ProtGPT2 on <b>CATH</b>, <b>UniRef50</b>, <b>SCOP</b>: low <em>R</em> reliably predicts low <em>U</em> — repetition is not cosmetic.</p>
+          <span class="axis-note">↑R · less repetition &nbsp;&nbsp; ↑U · better fold</span>
+        </div>
+      </article>
+
+      <!-- ③ Why not just penalize repetition? -->
+      <article class="panel">
+        <div class="panel-head">
+          <span class="num">03</span>
+          <h2>Why not just penalize repetition?</h2>
+        </div>
+        <div class="panel-body">
+          <p>Every decoding penalty or mechanism edit we tested either <em>barely moves R</em> or <em>trades R for a large U drop</em>. <b>No baseline simultaneously improves both.</b></p>
+          <table class="baseline-matrix">
+            <thead>
+              <tr>
+                <th style="text-align:left">Method family</th>
+                <th>R</th><th>U</th><th>jointly&nbsp;↑?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="lbl">Temperature / top-p</td>           <td class="eq">≈</td><td class="dn">↓</td><td class="bad">✗</td></tr>
+              <tr><td class="lbl">Entropy-based sampling</td>         <td class="up">↑↑</td><td class="dn">↓↓</td><td class="bad">✗</td></tr>
+              <tr><td class="lbl">Repetition / n-gram penalty</td>    <td class="up">↑</td><td class="dn">↓</td><td class="bad">✗</td></tr>
+              <tr><td class="lbl">Neuron deactivation</td>            <td class="up">↑</td><td class="dn">↓</td><td class="bad">✗</td></tr>
+              <tr><td class="lbl">Probe steering</td>                 <td class="eq">≈</td><td class="eq">≈</td><td class="bad">✗</td></tr>
+              <tr class="ours"><td class="lbl">UCCS (ours)</td>       <td class="up">↑</td><td class="up">↑</td><td class="good">✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- ============ MIDDLE COLUMN ============ -->
+    <section class="col col-mid">
+
+      <!-- ④ Method: UCCS — middle column single panel -->
+      <article class="panel method method-full">
+        <div class="panel-head">
+          <span class="num">04</span>
+          <h2>UCCS &middot; <em>Utility-Controlled Contrastive Steering</em></h2>
+        </div>
+        <div class="panel-body">
+          <p>UCCS extracts a <b>single steering vector</b> from a <em>utility-matched</em> contrastive dataset and injects it at inference — <b>no retraining, no decoding penalty</b>.</p>
+
+          <figure class="method-fig fig">
+            <img src="figs/method_overview-1.png" alt="UCCS method overview: utility-controlled contrastive pairs produce a layer-L steering vector injected at inference">
+          </figure>
+
+          <div class="step-row">
+            <div class="step">
+              <span class="badge">STEP&nbsp;1</span>
+              <div class="title">Utility-matched pairs</div>
+              <div class="desc">Build 𝒟⁺ (low-R) and 𝒟⁻ (high-R) so that <b>ΔU &le; ε</b> while ΔR is maximized. Pareto / composite selection beats random.</div>
+              <div class="eq-mini">(𝒟⁺, 𝒟⁻) = argmax&nbsp;ΔR &nbsp; s.t. &nbsp; ΔU &le; ε</div>
+            </div>
+            <div class="step">
+              <span class="badge">STEP&nbsp;2</span>
+              <div class="title">Mean-difference vector</div>
+              <div class="desc">Pool per-layer representations — mean for MLMs, last-token for AR-LMs. One direction per layer:</div>
+              <div class="eq-mini">v<sup>L</sup> = 𝔼<sub>𝒟⁺</sub>[φ<sup>L</sup>(x)] − 𝔼<sub>𝒟⁻</sub>[φ<sup>L</sup>(x)]</div>
+            </div>
+            <div class="step">
+              <span class="badge">STEP&nbsp;3</span>
+              <div class="title">Plug-and-play injection</div>
+              <div class="desc">Add α·v<sup>L</sup> to hidden states at inference. α &asymp; 1 works across backbones.</div>
+              <div class="eq-mini">h̃<sub>t</sub><sup>L</sup>(x) = h<sub>t</sub><sup>L</sup>(x) + α · v<sup>L</sup></div>
+            </div>
+          </div>
+
+          <div class="method-note">
+            <b>Why utility control matters.</b> Without ΔU&le;ε, <em>v<sup>L</sup></em> captures "natural&nbsp;vs&nbsp;generated" — not repetition. That is exactly why probe steering (the un-controlled version) fails to improve R. On D⁺/D⁻ pools, <b>R metrics separate sharply</b> while <b>U distributions align</b>, confirming the disentanglement.
+          </div>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- ============ RIGHT COLUMN ============ -->
+    <section class="col col-right">
+
+      <!-- ⑥ Main results -->
+      <article class="panel result">
+        <div class="panel-head">
+          <span class="num">06</span>
+          <h2>Main Results &middot; <em>ESM-3, unconditional, CATH</em></h2>
+        </div>
+        <div class="panel-body">
+          <div class="kpi-strip">
+            <div class="kpi"><div class="v">+52%</div><span class="k">R ↑ vs Original</span></div>
+            <div class="kpi"><div class="v">+13%</div><span class="k">U ↑ vs Original</span></div>
+            <div class="kpi"><div class="v">✓</div><span class="k">U ≥ U<sub>orig</sub> held</span></div>
+          </div>
+
+          <table class="result-table">
+            <thead>
+              <tr>
+                <th style="text-align:left">Method</th>
+                <th>R ↑</th><th>U ↑</th><th>U&nbsp;≥&nbsp;U₀?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="lbl">Original</td>            <td>0.423</td><td>0.576</td><td class="muted">—</td></tr>
+              <tr><td class="lbl">Temperature</td>         <td>0.751</td><td>0.566</td><td class="xmark">✗</td></tr>
+              <tr><td class="lbl">Entropy sampling</td>    <td><b>0.904</b></td><td>0.477</td><td class="xmark">✗</td></tr>
+              <tr><td class="lbl">Neuron deactivation</td> <td>0.551</td><td>0.507</td><td class="xmark">✗</td></tr>
+              <tr><td class="lbl">Probe steering</td>      <td>0.415</td><td>0.587</td><td class="check">✓</td></tr>
+              <tr class="ours"><td class="lbl">UCCS (ours)</td> <td>0.645</td><td>0.652</td><td class="check">✓</td></tr>
+            </tbody>
+          </table>
+
+          <div class="scatter-row">
+            <img src="figs/esm3_uncond_only-1.png" alt="ESM-3 R vs U scatter across CATH, UniRef50, SCOP unconditional; UCCS dominates the Pareto frontier">
+            <ul class="scatter-legend">
+              <li><i class="mk diamond uccs"></i><b>UCCS</b></li>
+              <li><i class="mk circle original"></i>Original</li>
+              <li><i class="mk square temp"></i>Temperature</li>
+              <li><i class="mk square topp"></i>Top-p</li>
+              <li><i class="mk square entropy"></i>Entropy</li>
+              <li><i class="mk triangle neuron"></i>Neuron&nbsp;deact.</li>
+              <li><i class="mk triangle probe"></i>Probe&nbsp;steer.</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- ⑦ Ablations -->
+      <article class="panel result">
+        <div class="panel-head">
+          <span class="num">07</span>
+          <h2>Ablations &middot; Dataset · α · Layer</h2>
+        </div>
+        <div class="panel-body">
+          <div class="ablation-row">
+            <div class="ablation-card">
+              <img src="figs/ablation_dataset-1.png" alt="Dataset sampling ablation: Pareto and Composite beat random">
+              <div class="lbl">(a) Dataset · Pareto &gt; random</div>
+            </div>
+            <div class="ablation-card">
+              <img src="figs/ablation_alpha-1.png" alt="Alpha ablation: unimodal around 1-1.5">
+              <div class="lbl">(b) α · peak ≈ 1–1.5</div>
+            </div>
+            <div class="ablation-card">
+              <img src="figs/ablation_layer-1.png" alt="Layer ablation: late layers dominate">
+              <div class="lbl">(c) Layer · last 3–6 %</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ⑧ UCCS Gallery — many small UCCS-generated proteins showcasing the effect -->
+      <article class="panel limit gallery-panel">
+        <div class="panel-head">
+          <span class="num">08</span>
+          <h2>UCCS Generations &middot; <em>Foldable &amp; Diverse Across Backbones</em></h2>
+        </div>
+        <div class="panel-body">
+          <div class="gallery-grid">
+            <figure class="thumb esm"><img src="figs/esm3_57_crop.png"  alt="ESM-3 UCCS 57aa"><figcaption>ESM-3 · 57</figcaption></figure>
+            <figure class="thumb esm"><img src="figs/esm3_70_crop.png"  alt="ESM-3 UCCS 70aa"><figcaption>ESM-3 · 70</figcaption></figure>
+            <figure class="thumb esm"><img src="figs/esm3_122_crop.png" alt="ESM-3 UCCS 122aa"><figcaption>ESM-3 · 122</figcaption></figure>
+            <figure class="thumb esm"><img src="figs/esm3_137_crop.png" alt="ESM-3 UCCS 137aa"><figcaption>ESM-3 · 137</figcaption></figure>
+            <figure class="thumb esm"><img src="figs/esm3_245_crop.png" alt="ESM-3 UCCS 245aa"><figcaption>ESM-3 · 245</figcaption></figure>
+            <figure class="thumb esm"><img src="figs/esm3_253_crop.png" alt="ESM-3 UCCS 253aa"><figcaption>ESM-3 · 253</figcaption></figure>
+            <figure class="thumb gpt"><img src="figs/protgpt2_68_crop.png"  alt="ProtGPT2 UCCS 68aa"><figcaption>ProtGPT2 · 68</figcaption></figure>
+            <figure class="thumb gpt"><img src="figs/protgpt2_72_crop.png"  alt="ProtGPT2 UCCS 72aa"><figcaption>ProtGPT2 · 72</figcaption></figure>
+            <figure class="thumb gpt"><img src="figs/protgpt2_115_crop.png" alt="ProtGPT2 UCCS 115aa"><figcaption>ProtGPT2 · 115</figcaption></figure>
+            <figure class="thumb gpt"><img src="figs/protgpt2_236_crop.png" alt="ProtGPT2 UCCS 236aa"><figcaption>ProtGPT2 · 236</figcaption></figure>
+            <figure class="thumb gpt"><img src="figs/protgpt2_245_crop.png" alt="ProtGPT2 UCCS 245aa"><figcaption>ProtGPT2 · 245</figcaption></figure>
+            <figure class="thumb gpt"><img src="figs/protgpt2_262_crop.png" alt="ProtGPT2 UCCS 262aa"><figcaption>ProtGPT2 · 262</figcaption></figure>
+          </div>
+          <p class="gallery-note"><span class="swatch esm"></span>&nbsp;<b>ESM-3 (MLM)</b>&nbsp;&nbsp;<span class="swatch gpt"></span>&nbsp;<b>ProtGPT2 (AR)</b>&nbsp;&nbsp;·&nbsp; All examples <b style="color:#1e6fb9">pLDDT</b>-colored. UCCS produces <em>diverse, high-confidence</em> folds across lengths and both backbones — not collapsing into low-complexity bundles.</p>
+        </div>
+      </article>
+
+    </section>
+
+  </main>
+
+  <!-- ============================================================
+       BOTTOM STRIP — venue + takeaway + limits + QR codes
+       ============================================================ -->
+  <footer class="bottom">
+    <div class="venue-tag"><span class="dot"></span>ICLR 2026</div>
+    <div class="bottom-text">
+      <div class="tagline"><b>Takeaway.</b> Repetition is PLMs' dominant failure mode — a <em>utility-disentangled</em> steering vector controls it without retraining, <em>improving</em> foldability rather than trading it.</div>
+      <div class="bottom-limits"><b>Limits:</b> steering vectors are model-specific (no cross-model transfer yet); contrastive pairs built offline per dataset; foldability measured in-silico (pLDDT / pTM) — wet-lab validation is future work.</div>
+    </div>
+    <div class="qr-strip">
+      <div class="qr-item">
+        <img src="assets/qr_paper.svg" alt="QR code to the arXiv paper">
+        <div class="lbl">Paper</div>
+      </div>
+      <div class="qr-item">
+        <img src="assets/qr_code.svg" alt="QR code to the GitHub repository">
+        <div class="lbl">Code</div>
+      </div>
+      <div class="qr-item">
+        <img src="assets/qr_homepage.svg" alt="QR code to the project homepage">
+        <div class="lbl">Project page</div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
